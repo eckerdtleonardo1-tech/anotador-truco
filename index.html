@@ -7,6 +7,12 @@
   <meta name="theme-color" content="#0a0a0c">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+
   <title>Anotador de Truco</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +31,7 @@
   </script>
   <style>
     * { box-sizing: border-box; }
-    body { background: #0a0a0c; color: #f4f4f5; touch-action: manipulation; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+    body { background: #0a0a0c; color: #f4f4f5; touch-action: manipulation; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
     input, button { touch-action: manipulation; font-family: inherit; }
     .hidden-el { display: none !important; }
 
@@ -64,7 +70,7 @@
     .team-emerald .match-diagonal { background: #34d399; }
 
     @keyframes scorePop { 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
-    .score-pop { animation: scorePop 0.22s ease-out; }
+    .score-pop { animation: scorePop 0.05s ease-out; }
 
     @keyframes confettiFall {
       0% { transform: translateY(-10vh) rotate(0deg); opacity:1; }
@@ -92,11 +98,11 @@
     }
 
     .wins-badge {
-      position: absolute; top: -7px; right: -10px;
-      min-width: 18px; height: 18px; border-radius: 999px;
-      font-size: 10px; font-weight: 800; display: flex;
-      align-items: center; justify-content: center; padding: 0 4px;
-      border: 2px solid #0a0a0c;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 16px; height: 16px; border-radius: 999px;
+      font-size: 9px; font-weight: 900; padding: 0 4px;
+      transform: translateY(-6px); margin-left: 2px;
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
     .mano-indicator {
@@ -118,11 +124,87 @@
     
     .pica-glow { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
 
+    /* VIEW TRANSITIONS */
+    ::view-transition-old(score-1), ::view-transition-new(score-1) { animation-duration: 0.07s; }
+    ::view-transition-old(score-2), ::view-transition-new(score-2) { animation-duration: 0.07s; }
+    ::view-transition-old(score-3), ::view-transition-new(score-3) { animation-duration: 0.07s; }
+    #score1-text { view-transition-name: score-1; }
+    #score2-text { view-transition-name: score-2; }
+    #score3-text { view-transition-name: score-3; }
+
+    /* LIGHT MODE overrides */
+    body.light-mode { background: #f4f4f5; color: #18181b; }
+    body.light-mode #main-board,
+    body.light-mode .bg-zinc-900\/60,
+    body.light-mode .bg-zinc-900\/80,
+    body.light-mode #history-panel,
+    body.light-mode #winner-modal > div,
+    body.light-mode #confirm-modal > div,
+    body.light-mode #manos-container {
+      background: #ffffff !important;
+      border-color: #d4d4d8 !important;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    }
+    body.light-mode .score-num,
+    body.light-mode #mano-count,
+    body.light-mode h1,
+    body.light-mode .text-white.modal-enter-p,
+    body.light-mode #confirm-modal p.text-white {
+      color: #18181b !important;
+    }
+    body.light-mode .bg-zinc-800\/80,
+    body.light-mode .bg-zinc-800\/70,
+    body.light-mode .bg-zinc-800\/60,
+    body.light-mode .bg-zinc-800,
+    body.light-mode input.bg-zinc-800,
+    body.light-mode #mano-count {
+      background: #f4f4f5 !important;
+      color: #18181b !important;
+      border-color: #d4d4d8 !important;
+    }
+    body.light-mode .text-zinc-400,
+    body.light-mode .text-zinc-300,
+    body.light-mode .text-zinc-500,
+    body.light-mode .text-zinc-600 {
+      color: #52525b;
+    }
+    body.light-mode .quick-btn { background: #ffffff; border-color: #d4d4d8; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+    body.light-mode .quick-btn:hover { background: #f4f4f5; }
+    
+    body.light-mode .quick-btn.bg-blue-950\/40, 
+    body.light-mode .quick-btn.bg-blue-950\/30, 
+    body.light-mode .quick-btn.bg-blue-950\/20 { color: #1d4ed8; border-color:#93c5fd; background:#eff6ff; }
+    
+    body.light-mode .quick-btn.bg-amber-950\/40, 
+    body.light-mode .quick-btn.bg-amber-950\/30, 
+    body.light-mode .quick-btn.bg-amber-950\/20 { color: #b45309; border-color:#fcd34d; background:#fffbeb; }
+
+    body.light-mode .quick-btn.bg-emerald-950\/40, 
+    body.light-mode .quick-btn.bg-emerald-950\/30, 
+    body.light-mode .quick-btn.bg-emerald-950\/20 { color: #047857; border-color:#6ee7b7; background:#ecfdf5; }
+
+    body.light-mode .flor-el { color: #be185d; border-color:#f9a8d4; background:#fdf2f8; }
+
+    body.light-mode .mano-indicator { background: #ffffff; color: #18181b; border-color: #a1a1aa; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: 900;}
+    body.light-mode .mano-indicator:hover { background: #f4f4f5; }
+    
+    body.light-mode .col-divider:not(:last-child)::after { background: linear-gradient(to bottom, transparent, #a1a1aa, transparent); }
+    body.light-mode .progress-track { background: #e4e4e7; }
+    body.light-mode .wins-badge { color: white !important; border-color: #ffffff; }
+    body.light-mode .log-entry { border-left-color: #a1a1aa; }
+    body.light-mode .w-px.bg-zinc-800 { background: #d4d4d8; }
+    body.light-mode .w-px.bg-zinc-700\/40 { background: #d4d4d8; }
+    body.light-mode #toast { background: #18181b; color: #ffffff; }
+
+    /* Fix the minus main button contrast */
+    body.light-mode .main-btn.bg-zinc-800\/60 { background: #ffffff; border-color: #a1a1aa; color: #3f3f46; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    body.light-mode .main-btn.bg-zinc-800\/60:hover { background: #f4f4f5; color: #18181b; }
+
   </style>
 </head>
 <body class="antialiased select-none">
 
-<div class="min-h-screen bg-[#0a0a0c] text-zinc-100 flex flex-col items-center py-4 px-3 relative surface-noise">
+<div class="min-h-screen text-zinc-100 flex flex-col items-center py-4 px-3 relative surface-noise">
 
   <!-- Header -->
   <div class="mb-4 text-center flex items-center gap-2">
@@ -147,9 +229,8 @@
         <button id="btn-mode-3" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-zinc-500" onclick="setMode(3)">3</button>
       </div>
     </div>
-    <div class="w-px h-5 bg-zinc-700/40 hidden sm:block"></div>
     
-    <!-- Row break for very small screens -->
+    <div class="w-px h-5 bg-zinc-700/40 hidden sm:block"></div>
     <div class="w-full sm:hidden"></div>
 
     <div class="flex items-center gap-2">
@@ -159,11 +240,21 @@
         <button id="btn-flor-on" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-zinc-500" onclick="setFlor(true)">Sí</button>
       </div>
     </div>
+    
     <div class="w-px h-5 bg-zinc-700/40"></div>
-    <button onclick="toggleSound()" class="flex items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors p-1" title="Sonido">
-      <svg id="sound-icon-on" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-      <svg id="sound-icon-off" class="hidden-el" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-    </button>
+    
+    <div class="flex items-center gap-2">
+      <!-- Theme Toggle -->
+      <button onclick="toggleTheme()" class="flex items-center justify-center p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors" title="Cambiar Tema">
+        <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg id="theme-icon-light" class="hidden-el" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+      <!-- Sound Toggle -->
+      <button onclick="toggleSound()" class="flex items-center justify-center p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-colors" title="Sonido">
+        <svg id="sound-icon-on" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="sound-icon-off" class="hidden-el" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+      </button>
+    </div>
   </div>
 
   <!-- Pica Pica Banner -->
@@ -174,16 +265,14 @@
   <!-- Main Board -->
   <div id="main-board" class="flex w-full max-w-lg bg-gradient-to-b from-zinc-900/70 to-zinc-900/40 rounded-3xl p-4 sm:p-6 shadow-2xl border border-zinc-800/30 relative z-10 backdrop-blur-md transition-all duration-300 surface-noise mt-3">
 
-    <!-- === COLUMN TEMPLATE === -->
-
     <!-- Column 1 (Blue) -->
     <div id="column-1" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-blue relative">
       <div id="mano-indicator-1" class="mano-indicator" onclick="nextMano()" title="Hacer clic para pasar la mano">✋ MANO</div>
-      <div class="relative mt-2">
+      <div class="mt-2">
         <div id="team1-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(1)">
           <h2 id="team1-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-blue-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-blue-200 transition-colors">Nosotros</h2>
+          <span id="wins-1" class="wins-badge bg-blue-600 text-white hidden-el">0</span>
         </div>
-        <span id="wins-1" class="wins-badge bg-blue-600 text-white hidden-el">0</span>
       </div>
       <div id="team1-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px] mt-2">
         <input id="team1-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(1)">
@@ -202,9 +291,7 @@
         </div>
       </div>
 
-      <!-- Buttons -->
       <div class="flex flex-col gap-2 w-full mt-5 sm:mt-6">
-        <!-- +1 / -1 -->
         <div class="flex gap-2 mb-1">
           <button id="btn-minus-1" onclick="changeScore(1,-1)" class="main-btn flex-1 flex justify-center items-center py-3 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -214,7 +301,6 @@
           </button>
         </div>
         
-        <!-- Grid Quick Actions -->
         <div class="grid grid-cols-2 gap-1.5 w-full">
           <button onclick="changeScore(1,2,'Envido')" class="quick-btn py-2 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
           <button onclick="changeScore(1,4,'Env. Envido')" class="quick-btn py-2 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">Env. Env<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
@@ -227,7 +313,6 @@
           
           <button onclick="changeScore(1,4,'Vale 4')" class="quick-btn py-2 col-span-2 bg-blue-950/20 hover:bg-blue-900/25 rounded-lg text-blue-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/10 leading-tight">Vale 4<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
 
-          <!-- Flor Buttons (hidden by default) -->
           <button onclick="changeScore(1,3,'Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
           <button onclick="changeScore(1,6,'C. Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">C. Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+6</span></button>
         </div>
@@ -237,11 +322,11 @@
     <!-- Column 2 (Amber) -->
     <div id="column-2" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-amber relative">
       <div id="mano-indicator-2" class="mano-indicator" onclick="nextMano()" title="Hacer clic para pasar la mano">✋ MANO</div>
-      <div class="relative mt-2">
+      <div class="mt-2">
         <div id="team2-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(2)">
           <h2 id="team2-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-amber-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-amber-200 transition-colors">Ellos</h2>
+          <span id="wins-2" class="wins-badge bg-amber-600 text-white hidden-el">0</span>
         </div>
-        <span id="wins-2" class="wins-badge bg-amber-600 text-white hidden-el">0</span>
       </div>
       <div id="team2-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px] mt-2">
         <input id="team2-input" type="text" class="bg-zinc-800 text-zinc-100 border border-amber-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(2)">
@@ -291,11 +376,11 @@
     <!-- Column 3 (Emerald) -->
     <div id="column-3" class="flex-1 flex flex-col items-center px-2 sm:px-4 hidden-el col-divider team-emerald relative">
       <div id="mano-indicator-3" class="mano-indicator" onclick="nextMano()" title="Hacer clic para pasar la mano">✋ MANO</div>
-      <div class="relative mt-2">
+      <div class="mt-2">
         <div id="team3-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(3)">
           <h2 id="team3-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-emerald-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-emerald-200 transition-colors">Los Otros</h2>
+          <span id="wins-3" class="wins-badge bg-emerald-600 text-white hidden-el">0</span>
         </div>
-        <span id="wins-3" class="wins-badge bg-emerald-600 text-white hidden-el">0</span>
       </div>
       <div id="team3-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px] mt-2">
         <input id="team3-input" type="text" class="bg-zinc-800 text-zinc-100 border border-emerald-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(3)">
@@ -346,7 +431,7 @@
 
   <!-- Bottom Actions -->
   <div class="mt-6 flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center mb-8">
-    <div class="flex items-center gap-2 bg-zinc-900/80 px-4 py-2 rounded-full border border-zinc-800/50">
+    <div id="manos-container" class="flex items-center gap-2 bg-zinc-900/80 px-4 py-2 rounded-full border border-zinc-800/50">
       <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest mr-1">Manos jugadas:</span>
       <span id="mano-count" class="text-sm font-extrabold text-white tabular-nums bg-zinc-800/80 rounded-md px-2 py-0.5">0</span>
     </div>
@@ -396,7 +481,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
       </div>
       <p class="text-sm font-semibold text-zinc-500 uppercase tracking-widest mb-1">🏆 ¡Victoria!</p>
-      <p id="winner-name" class="text-2xl sm:text-3xl text-white font-black mb-1 text-center"></p>
+      <p id="winner-name" class="text-2xl sm:text-3xl text-white font-black mb-1 text-center modal-enter-p"></p>
       <p id="winner-score-detail" class="text-sm text-zinc-500 mb-5"></p>
       <button onclick="resetGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
@@ -420,19 +505,41 @@
 </div>
 
 <script>
+  // PWA REGISTRATION
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        console.log('Service Worker registrado', reg.scope);
+      }).catch(err => console.log('Error al registrar SW', err));
+    });
+  }
+
+  // WAKE LOCK API (Keep screen on)
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+      }
+    } catch (err) {}
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+  });
+  requestWakeLock();
+
   const DEFAULTS = ["Nosotros", "Ellos", "Los Otros"];
   const COLORS = ["blue", "amber", "emerald"];
-  const SK = "truco_v5";
-  const WK = "truco_wins_v5";
+  const SK = "truco_v6";
+  const WK = "truco_wins_v6";
 
-  let state = { mode:2, teams:[...DEFAULTS], scores:[0,0,0], limit:30, winner:null, manos:0, florEnabled:false, manoIdx:0 };
+  let state = { mode:2, teams:[...DEFAULTS], scores:[0,0,0], limit:30, winner:null, manos:0, florEnabled:false, manoIdx:0, theme:'dark' };
   let wins = [0,0,0];
   let undoStack = [];
   let actionLog = [];
   let soundEnabled = true;
   let audioCtx = null;
 
-  // Storage
   function save() { try { localStorage.setItem(SK,JSON.stringify(state)); localStorage.setItem(WK,JSON.stringify(wins)); } catch(e){} }
   function load() {
     try {
@@ -440,10 +547,23 @@
       const w=localStorage.getItem(WK); if(w){const p=JSON.parse(w); if(Array.isArray(p)) wins=p;}
       if(state.manoIdx === undefined) state.manoIdx = 0;
       if(state.florEnabled === undefined) state.florEnabled = false;
+      if(state.theme === undefined) state.theme = 'dark';
     } catch(e){}
   }
 
-  // Sound
+  function toggleTheme() {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    applyTheme();
+    save();
+  }
+  function applyTheme() {
+    const isLight = state.theme === 'light';
+    document.body.classList.toggle('light-mode', isLight);
+    document.getElementById('theme-icon-dark').classList.toggle('hidden-el', isLight);
+    document.getElementById('theme-icon-light').classList.toggle('hidden-el', !isLight);
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', isLight ? '#f4f4f5' : '#0a0a0c');
+  }
+
   function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
   function playTick(freq,dur) {
     if(!soundEnabled) return;
@@ -452,10 +572,8 @@
   function playWin() { if(!soundEnabled) return; [0,150,300].forEach((d,i)=>setTimeout(()=>playTick(500+i*200,0.15),d)); }
   function toggleSound() { soundEnabled=!soundEnabled; document.getElementById('sound-icon-on').classList.toggle('hidden-el',!soundEnabled); document.getElementById('sound-icon-off').classList.toggle('hidden-el',soundEnabled); }
 
-  // Haptic
   function haptic(ms) { try { if(navigator.vibrate) navigator.vibrate(ms||15); } catch(e){} }
 
-  // Matchsticks
   function renderMatches(id,score) {
     const el=document.getElementById(id); if(!el) return;
     const ds = state.limit===15 ? score : (score<=15?score:score-15);
@@ -466,13 +584,11 @@
     el.innerHTML=h;
   }
 
-  // Confetti
   function launchConfetti() {
     const cols=['#3b82f6','#f59e0b','#10b981','#60a5fa','#fbbf24','#34d399','#f472b6','#a78bfa','#fb923c'];
     for(let i=0;i<70;i++) { const p=document.createElement('div'); p.className='confetti-piece'; p.style.left=Math.random()*100+'vw'; p.style.background=cols[Math.floor(Math.random()*cols.length)]; p.style.animationDuration=(Math.random()*2+1.5)+'s'; p.style.animationDelay=(Math.random()*0.6)+'s'; p.style.width=(Math.random()*6+4)+'px'; p.style.height=(Math.random()*6+4)+'px'; p.style.borderRadius=Math.random()>0.5?'50%':'2px'; document.body.appendChild(p); setTimeout(()=>p.remove(),4500); }
   }
 
-  function popScore(t) { const el=document.getElementById(`score${t}-text`); if(!el) return; el.classList.remove('score-pop'); void el.offsetWidth; el.classList.add('score-pop'); }
   function setToggle(on,off, onClass) { document.getElementById(on).className=`tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-white ${onClass||'bg-blue-600'}`; document.getElementById(off).className="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300"; }
   function getPhase(s) { return state.limit===15?"Puntos":(s<15?"Malas":"Buenas"); }
   function getPhaseScore(s) { return state.limit===15?s:(s<=15?s:s-15); }
@@ -500,12 +616,23 @@
   }
 
   function nextMano() {
+    undoStack.push({scores:[...state.scores],manos:state.manos,winner:state.winner,manoIdx:state.manoIdx,logLen:actionLog.length});
+    if(undoStack.length>50) undoStack.shift();
+    
     state.manoIdx = (state.manoIdx + 1) % state.mode;
+    state.manos++;
     haptic(10);
-    updateUI();
+    updateWithTransition();
   }
 
-  // UI
+  function updateWithTransition() {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => updateUI());
+    } else {
+      updateUI();
+    }
+  }
+
   function updateUI() {
     const board=document.getElementById('main-board'), col3=document.getElementById('column-3');
     if(state.mode===3) {
@@ -520,10 +647,8 @@
     if(state.limit===15) setToggle('btn-limit-15','btn-limit-30'); else setToggle('btn-limit-30','btn-limit-15');
     if(state.florEnabled) setToggle('btn-flor-on','btn-flor-off', 'bg-pink-600'); else setToggle('btn-flor-off','btn-flor-on', 'bg-zinc-600');
 
-    // Flor visibility
     document.querySelectorAll('.flor-el').forEach(el => el.classList.toggle('hidden-el', !state.florEnabled));
 
-    // Pica pica logic
     const banner = document.getElementById('pica-pica-banner');
     if(state.mode === 2 && state.limit === 30 && state.scores[0] >= 5 && state.scores[1] >= 5 && state.scores[0] < 25 && state.scores[1] < 25) {
       banner.classList.remove('hidden-el');
@@ -531,7 +656,6 @@
       banner.classList.add('hidden-el');
     }
 
-    // Mano indicators
     for(let i=1; i<=3; i++) {
       const mind = document.getElementById(`mano-indicator-${i}`);
       if(mind) mind.classList.toggle('active', state.manoIdx === i-1);
@@ -566,28 +690,21 @@
     save();
   }
 
-  // Core
   function changeScore(team,amount,label) {
     if(state.winner) return;
     const idx=team-1;
-    undoStack.push({scores:[...state.scores],manos:state.manos,winner:state.winner,manoIdx:state.manoIdx});
+    undoStack.push({scores:[...state.scores],manos:state.manos,winner:state.winner,manoIdx:state.manoIdx,logLen:actionLog.length});
     if(undoStack.length>50) undoStack.shift();
     
     state.scores[idx]=Math.max(0,state.scores[idx]+amount);
-    
-    if(amount>0) {
-      // Auto-advance hand when points are scored? 
-      // People often score multiple things at once (e.g. Envido then Truco).
-      // We will only increment the total manos count when points are added, but leave the 'Mano' indicator manual.
-      state.manos++;
-    }
     
     addLog(idx,amount,label||'');
     if(state.scores[idx]>=state.limit) {
       state.scores[idx]=state.limit; state.winner=state.teams[idx]; wins[idx]++;
       setTimeout(launchConfetti,100); playWin(); haptic(80);
     } else { playTick(amount>0?800:400,0.06); haptic(12); }
-    popScore(team); updateUI();
+    
+    updateWithTransition();
   }
 
   function faltaEnvido(team) {
@@ -599,11 +716,9 @@
       if(state.scores[i] > maxScore) maxScore = state.scores[i];
     }
     let pointsToAdd = 0;
-    if(maxScore < half) {
-      pointsToAdd = limit; // Gana el partido directamente
-    } else {
-      pointsToAdd = limit - maxScore; // Lo que le falta al que va ganando
-    }
+    if(maxScore < half) pointsToAdd = limit; 
+    else pointsToAdd = limit - maxScore; 
+    
     if(pointsToAdd <= 0) return;
     changeScore(team, pointsToAdd, 'Falta Envido');
   }
@@ -613,22 +728,27 @@
     const prev=undoStack.pop(); 
     state.scores=prev.scores; state.manos=prev.manos; state.winner=prev.winner;
     if(prev.manoIdx !== undefined) state.manoIdx = prev.manoIdx;
-    if(actionLog.length>0) actionLog.pop();
-    haptic(10); playTick(300,0.05); updateUI();
+    
+    if(prev.logLen !== undefined) {
+      while(actionLog.length > prev.logLen) actionLog.pop();
+    } else {
+      if(actionLog.length>0) actionLog.pop();
+    }
+    
+    haptic(10); playTick(300,0.05); updateWithTransition();
   }
 
   function setLimit(n) { if(state.limit===n) return; state.limit=n; undoStack=[]; actionLog=[]; resetGame(); }
   function setMode(n) { if(state.mode===n) return; state.mode=n; undoStack=[]; actionLog=[]; resetGame(); }
-  function setFlor(v) { state.florEnabled=v; haptic(10); updateUI(); }
+  function setFlor(v) { state.florEnabled=v; haptic(10); updateWithTransition(); }
   
   function resetGame() { 
     state.scores=[0,0,0]; state.winner=null; state.manos=0; state.manoIdx=0; 
-    undoStack=[]; actionLog=[]; updateUI(); 
+    undoStack=[]; actionLog=[]; updateWithTransition(); 
   }
   function confirmReset() { if(state.scores.every(s=>s===0)) return; document.getElementById('confirm-modal').classList.remove('hidden-el'); }
   function dismissConfirm() { document.getElementById('confirm-modal').classList.add('hidden-el'); }
 
-  // Team edit
   function startEditing(t) {
     document.getElementById(`team${t}-display`).classList.add('hidden-el');
     document.getElementById(`team${t}-edit`).classList.remove('hidden-el');
@@ -648,7 +768,9 @@
   });
 
   // Init
-  load(); updateUI();
+  load(); 
+  applyTheme();
+  updateUI();
 </script>
 </body>
 </html>
