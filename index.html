@@ -3,338 +3,555 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Anotador de Truco Argentino — Llevá la cuenta de los puntos de forma fácil y rápida.">
+  <meta name="theme-color" content="#09090b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Anotador de Truco</title>
-  
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { extend: { colors: { background: '#09090b' } } }
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
     }
   </script>
   <style>
-    body { background-color: #09090b; color: #f4f4f5; touch-action: manipulation; }
-    input, button { touch-action: manipulation; }
+    * { box-sizing: border-box; }
+    body { background-color: #09090b; color: #f4f4f5; touch-action: manipulation; font-family: 'Inter', system-ui, sans-serif; }
+    input, button { touch-action: manipulation; font-family: inherit; }
     .hidden-el { display: none !important; }
-    
-    /* Separador dinámico entre columnas */
-    .col-divider { border-right: 1px solid #27272a; } /* zinc-800 */
-    .col-divider:last-child { border-right: none; }
-    
-    /* Responsive font adjustments for 3 players */
-    .mode-3 .score-num { font-size: 3.5rem; height: 3.5rem; }
-    .mode-3 .team-name { font-size: 1rem; max-width: 80px; }
+
+    .col-divider { position: relative; }
+    .col-divider:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 2rem; bottom: 2rem;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, #3f3f46, transparent);
+    }
+
+    .mode-3 .score-num { font-size: 3rem; }
+    .mode-3 .team-label { font-size: 0.8rem; max-width: 72px; }
     @media (min-width: 640px) {
-      .mode-3 .score-num { font-size: 4.5rem; height: 4.5rem; }
-      .mode-3 .team-name { font-size: 1.25rem; max-width: 100px; }
+      .mode-3 .score-num { font-size: 4rem; }
+      .mode-3 .team-label { font-size: 1rem; max-width: 100px; }
+    }
+
+    /* Fósforo SVG */
+    .match-group { display: inline-flex; gap: 1px; align-items: end; }
+    .match-stick { width: 3px; height: 18px; border-radius: 1px; background: #a1a1aa; transition: background 0.2s; }
+    .match-stick.lit { background: #60a5fa; }
+    .match-diagonal {
+      position: absolute;
+      left: -1px; top: 50%; width: calc(100% + 2px);
+      height: 2px; border-radius: 1px;
+      background: #60a5fa;
+      transform: rotate(-35deg);
+      transform-origin: center;
+    }
+    .match-cluster { position: relative; display: inline-flex; gap: 2px; padding: 0 2px; }
+
+    /* Score pop */
+    @keyframes scorePop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    .score-pop { animation: scorePop 0.25s ease-out; }
+
+    /* Confetti */
+    @keyframes confettiFall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+      position: fixed; top: -10px; z-index: 100;
+      width: 8px; height: 8px; border-radius: 1px;
+      animation: confettiFall linear forwards;
+      pointer-events: none;
+    }
+
+    /* Modal fade */
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.9) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-enter { animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    /* Progress bar */
+    .progress-track { background: #27272a; border-radius: 999px; overflow: hidden; }
+    .progress-fill { transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-radius: 999px; min-width: 0; }
+
+    /* Subtle noise */
+    .surface-noise {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
     }
   </style>
 </head>
 <body class="antialiased select-none">
 
-  <div class="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col items-center justify-center py-4 px-2 font-sans relative overflow-hidden">
-    
-    <!-- Barra Superior Configuración -->
-    <div class="flex flex-col sm:flex-row items-center gap-4 mb-6 bg-zinc-900/80 px-5 py-3 rounded-2xl border border-zinc-800 shadow-xl backdrop-blur-sm z-10 w-full max-w-xl justify-center">
-      
-      <!-- Límite -->
-      <div class="flex items-center gap-3">
-        <span class="text-xs sm:text-sm font-medium text-zinc-400 uppercase tracking-wider">Límite:</span>
-        <div class="flex bg-zinc-800/80 rounded-lg p-1">
-          <button id="btn-limit-15" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700" onclick="setLimit(15)">15</button>
-          <button id="btn-limit-30" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md" onclick="setLimit(30)">30</button>
-        </div>
+<div class="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col items-center justify-center py-4 px-3 relative overflow-hidden surface-noise">
+
+  <!-- Header -->
+  <div class="mb-5 text-center">
+    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-zinc-200 flex items-center justify-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      Anotador de Truco
+    </h1>
+  </div>
+
+  <!-- Config Bar -->
+  <div class="flex flex-row items-center gap-3 sm:gap-5 mb-5 bg-zinc-900/70 px-4 py-2.5 rounded-2xl border border-zinc-800/70 shadow-lg backdrop-blur z-10">
+
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] sm:text-xs font-semibold text-zinc-500 uppercase tracking-widest">Puntos</span>
+      <div class="flex bg-zinc-800/80 rounded-lg p-0.5">
+        <button id="btn-limit-15" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300" onclick="setLimit(15)">15</button>
+        <button id="btn-limit-30" class="px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white" onclick="setLimit(30)">30</button>
       </div>
-
-      <!-- Divisor -->
-      <div class="w-full sm:w-[1px] h-[1px] sm:h-6 bg-zinc-700 opacity-50"></div>
-
-      <!-- Jugadores -->
-      <div class="flex items-center gap-3">
-        <span class="text-xs sm:text-sm font-medium text-zinc-400 uppercase tracking-wider">Equipos:</span>
-        <div class="flex bg-zinc-800/80 rounded-lg p-1">
-          <button id="btn-mode-2" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md" onclick="setMode(2)">2</button>
-          <button id="btn-mode-3" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700" onclick="setMode(3)">3</button>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Tablero Principal -->
-    <div id="main-board" class="flex w-full max-w-md bg-zinc-900/60 rounded-[2rem] p-2 sm:p-6 shadow-2xl border border-zinc-800/50 relative z-10 backdrop-blur-md transition-all duration-300">
-      
-      <!-- Equipo 1 -->
-      <div id="column-1" class="flex-1 flex flex-col items-center px-1 sm:px-4 col-divider">
-        <div id="team1-display" class="flex items-center gap-1 sm:gap-2 justify-center group cursor-pointer h-[32px]" onclick="startEditing(1)" title="Editar nombre">
-          <h2 id="team1-name" class="team-name text-xl font-bold tracking-wide text-zinc-100 truncate max-w-[100px] sm:max-w-[120px] transition-all">Nosotros</h2>
-        </div>
-        <div id="team1-edit" class="hidden-el flex items-center gap-1 sm:gap-2 justify-center h-[32px]">
-          <input id="team1-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/50 rounded px-1 sm:px-2 py-1 w-16 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(1)">
-        </div>
-        
-        <div class="mt-6 sm:mt-8 mb-2 relative flex flex-col items-center">
-           <div id="score1-text" class="score-num text-[4rem] sm:text-[5rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-400 tracking-tighter tabular-nums drop-shadow-sm h-[4rem] sm:h-[5rem] flex items-center justify-center transition-all">0</div>
-           <span id="phase1-text" class="text-[9px] sm:text-xs font-medium text-blue-500/80 uppercase tracking-[0.2em] mt-2 sm:mt-4 h-4">Malas</span>
-        </div>
+    <div class="w-px h-5 bg-zinc-700/60"></div>
 
-        <div class="flex flex-col gap-1.5 sm:gap-3 w-full mt-6 sm:mt-8 px-1">
-          <div class="flex gap-1.5 sm:gap-2">
-            <button id="btn-minus-1" onclick="changeScore(1, -1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-zinc-800/80 hover:bg-zinc-700 rounded-xl sm:rounded-2xl text-zinc-400 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:hover:bg-zinc-800 border border-zinc-700/50"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-            <button onclick="changeScore(1, 1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 rounded-xl sm:rounded-2xl text-white shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 border border-blue-400/20"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-          </div>
-          <div class="flex gap-1.5 sm:gap-2">
-            <button onclick="changeScore(1, 2)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50">+2</button>
-            <button onclick="changeScore(1, 3)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50">+3</button>
-          </div>
-        </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] sm:text-xs font-semibold text-zinc-500 uppercase tracking-widest">Equipos</span>
+      <div class="flex bg-zinc-800/80 rounded-lg p-0.5">
+        <button id="btn-mode-2" class="px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white" onclick="setMode(2)">2</button>
+        <button id="btn-mode-3" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300" onclick="setMode(3)">3</button>
       </div>
-
-      <!-- Equipo 2 -->
-      <div id="column-2" class="flex-1 flex flex-col items-center px-1 sm:px-4 col-divider">
-        <div id="team2-display" class="flex items-center gap-1 sm:gap-2 justify-center group cursor-pointer h-[32px]" onclick="startEditing(2)" title="Editar nombre">
-          <h2 id="team2-name" class="team-name text-xl font-bold tracking-wide text-zinc-100 truncate max-w-[100px] sm:max-w-[120px] transition-all">Ellos</h2>
-        </div>
-        <div id="team2-edit" class="hidden-el flex items-center gap-1 sm:gap-2 justify-center h-[32px]">
-          <input id="team2-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/50 rounded px-1 sm:px-2 py-1 w-16 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(2)">
-        </div>
-        
-        <div class="mt-6 sm:mt-8 mb-2 relative flex flex-col items-center">
-           <div id="score2-text" class="score-num text-[4rem] sm:text-[5rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-400 tracking-tighter tabular-nums drop-shadow-sm h-[4rem] sm:h-[5rem] flex items-center justify-center transition-all">0</div>
-           <span id="phase2-text" class="text-[9px] sm:text-xs font-medium text-blue-500/80 uppercase tracking-[0.2em] mt-2 sm:mt-4 h-4">Malas</span>
-        </div>
-
-        <div class="flex flex-col gap-1.5 sm:gap-3 w-full mt-6 sm:mt-8 px-1">
-          <div class="flex gap-1.5 sm:gap-2">
-            <button id="btn-minus-2" onclick="changeScore(2, -1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-zinc-800/80 hover:bg-zinc-700 rounded-xl sm:rounded-2xl text-zinc-400 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:hover:bg-zinc-800 border border-zinc-700/50"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-            <button onclick="changeScore(2, 1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 rounded-xl sm:rounded-2xl text-white shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 border border-blue-400/20"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-          </div>
-          <div class="flex gap-1.5 sm:gap-2">
-            <button onclick="changeScore(2, 2)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50">+2</button>
-            <button onclick="changeScore(2, 3)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50">+3</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Equipo 3 -->
-      <div id="column-3" class="flex-1 flex flex-col items-center px-1 sm:px-4 hidden-el col-divider">
-        <div id="team3-display" class="flex items-center gap-1 sm:gap-2 justify-center group cursor-pointer h-[32px]" onclick="startEditing(3)" title="Editar nombre">
-          <h2 id="team3-name" class="team-name text-xl font-bold tracking-wide text-zinc-100 truncate max-w-[100px] sm:max-w-[120px] transition-all">El Otro</h2>
-        </div>
-        <div id="team3-edit" class="hidden-el flex items-center gap-1 sm:gap-2 justify-center h-[32px]">
-          <input id="team3-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/50 rounded px-1 sm:px-2 py-1 w-16 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(3)">
-        </div>
-        
-        <div class="mt-6 sm:mt-8 mb-2 relative flex flex-col items-center">
-           <div id="score3-text" class="score-num text-[4rem] sm:text-[5rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-400 tracking-tighter tabular-nums drop-shadow-sm h-[4rem] sm:h-[5rem] flex items-center justify-center transition-all">0</div>
-           <span id="phase3-text" class="text-[9px] sm:text-xs font-medium text-blue-500/80 uppercase tracking-[0.2em] mt-2 sm:mt-4 h-4">Malas</span>
-        </div>
-
-        <div class="flex flex-col gap-1.5 sm:gap-3 w-full mt-6 sm:mt-8 px-1">
-          <div class="flex gap-1.5 sm:gap-2">
-            <button id="btn-minus-3" onclick="changeScore(3, -1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-zinc-800/80 hover:bg-zinc-700 rounded-xl sm:rounded-2xl text-zinc-400 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:hover:bg-zinc-800 border border-zinc-700/50"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-            <button onclick="changeScore(3, 1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 rounded-xl sm:rounded-2xl text-white shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 border border-blue-400/20"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
-          </div>
-          <div class="flex gap-1.5 sm:gap-2">
-            <button onclick="changeScore(3, 2)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50">+2</button>
-            <button onclick="changeScore(3, 3)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50">+3</button>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Reiniciar Button -->
-    <button onclick="resetGame()" class="mt-8 flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors py-2 px-4 rounded-full hover:bg-zinc-900/50">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-      <span class="text-sm font-medium">Reiniciar Partida</span>
-    </button>
+    <div class="w-px h-5 bg-zinc-700/60"></div>
 
-    <!-- Modal Ganador -->
-    <div id="winner-modal" class="hidden-el fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 max-w-[320px] sm:max-w-sm w-full shadow-2xl flex flex-col items-center">
-        <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 border border-blue-500/20">
-          <svg class="text-blue-500 drop-shadow-[0_0_15px_rgba(37,99,235,0.5)]" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] sm:text-xs font-semibold text-zinc-500 uppercase tracking-widest">Mano</span>
+      <span id="mano-count" class="text-sm font-extrabold text-zinc-300 tabular-nums bg-zinc-800/60 rounded-md px-2 py-0.5">0</span>
+    </div>
+
+  </div>
+
+  <!-- Main Board -->
+  <div id="main-board" class="flex w-full max-w-md bg-zinc-900/50 rounded-3xl p-3 sm:p-5 shadow-2xl border border-zinc-800/40 relative z-10 backdrop-blur-md transition-all duration-300 surface-noise">
+
+    <!-- Column 1 -->
+    <div id="column-1" class="flex-1 flex flex-col items-center px-1 sm:px-3 col-divider">
+      <div id="team1-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(1)">
+        <h2 id="team1-name" class="team-label text-base sm:text-lg font-extrabold tracking-wide text-zinc-200 truncate max-w-[90px] sm:max-w-[120px] group-hover:text-blue-400 transition-colors">Nosotros</h2>
+      </div>
+      <div id="team1-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+        <input id="team1-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500/60 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(1)">
+      </div>
+
+      <!-- Matchsticks -->
+      <div id="matches-1" class="mt-4 sm:mt-5 min-h-[24px] flex flex-wrap justify-center gap-x-2 gap-y-1 px-1"></div>
+
+      <!-- Score -->
+      <div class="mt-2 sm:mt-3 flex flex-col items-center">
+        <div id="score1-text" class="score-num text-5xl sm:text-6xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
+        <span id="phase1-text" class="text-[9px] sm:text-[11px] font-bold uppercase tracking-[0.2em] mt-1.5 text-blue-400/70">Malas</span>
+      </div>
+
+      <!-- Progress -->
+      <div class="w-full mt-3 px-1">
+        <div class="progress-track h-[3px] w-full">
+          <div id="progress-1" class="progress-fill h-full bg-blue-500" style="width: 0%"></div>
         </div>
-        <h2 class="text-3xl font-black text-white mb-2 text-center">¡Ganaron!</h2>
-        <p id="winner-name" class="text-xl text-blue-400 font-bold mb-8 text-center bg-blue-500/10 px-6 py-2 rounded-full border border-blue-500/20"></p>
-        <button onclick="resetGame()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold text-lg shadow-[0_0_20px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-          Jugar de nuevo
-        </button>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex flex-col gap-1.5 sm:gap-2 w-full mt-4 sm:mt-5 px-0.5">
+        <div class="flex gap-1.5">
+          <button id="btn-minus-1" onclick="changeScore(1, -1)" class="flex-1 flex justify-center items-center py-2.5 sm:py-3 bg-zinc-800/70 hover:bg-zinc-700/80 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-30 border border-zinc-700/40">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button onclick="changeScore(1, 1)" class="flex-1 flex justify-center items-center py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white shadow-[0_4px_20px_-4px_rgba(37,99,235,0.35)] transition-all active:scale-95 border border-blue-400/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(1, 2)" class="flex-1 py-2 sm:py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 rounded-lg text-blue-400/80 hover:text-blue-300 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-zinc-700/30">+2</button>
+          <button onclick="changeScore(1, 3)" class="flex-1 py-2 sm:py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 rounded-lg text-blue-400/80 hover:text-blue-300 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-zinc-700/30">+3</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 2 -->
+    <div id="column-2" class="flex-1 flex flex-col items-center px-1 sm:px-3 col-divider">
+      <div id="team2-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(2)">
+        <h2 id="team2-name" class="team-label text-base sm:text-lg font-extrabold tracking-wide text-zinc-200 truncate max-w-[90px] sm:max-w-[120px] group-hover:text-blue-400 transition-colors">Ellos</h2>
+      </div>
+      <div id="team2-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+        <input id="team2-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500/60 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(2)">
+      </div>
+
+      <div id="matches-2" class="mt-4 sm:mt-5 min-h-[24px] flex flex-wrap justify-center gap-x-2 gap-y-1 px-1"></div>
+
+      <div class="mt-2 sm:mt-3 flex flex-col items-center">
+        <div id="score2-text" class="score-num text-5xl sm:text-6xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
+        <span id="phase2-text" class="text-[9px] sm:text-[11px] font-bold uppercase tracking-[0.2em] mt-1.5 text-blue-400/70">Malas</span>
+      </div>
+
+      <div class="w-full mt-3 px-1">
+        <div class="progress-track h-[3px] w-full">
+          <div id="progress-2" class="progress-fill h-full bg-blue-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5 sm:gap-2 w-full mt-4 sm:mt-5 px-0.5">
+        <div class="flex gap-1.5">
+          <button id="btn-minus-2" onclick="changeScore(2, -1)" class="flex-1 flex justify-center items-center py-2.5 sm:py-3 bg-zinc-800/70 hover:bg-zinc-700/80 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-30 border border-zinc-700/40">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button onclick="changeScore(2, 1)" class="flex-1 flex justify-center items-center py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white shadow-[0_4px_20px_-4px_rgba(37,99,235,0.35)] transition-all active:scale-95 border border-blue-400/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(2, 2)" class="flex-1 py-2 sm:py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 rounded-lg text-blue-400/80 hover:text-blue-300 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-zinc-700/30">+2</button>
+          <button onclick="changeScore(2, 3)" class="flex-1 py-2 sm:py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 rounded-lg text-blue-400/80 hover:text-blue-300 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-zinc-700/30">+3</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 3 -->
+    <div id="column-3" class="flex-1 flex flex-col items-center px-1 sm:px-3 hidden-el col-divider">
+      <div id="team3-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(3)">
+        <h2 id="team3-name" class="team-label text-base sm:text-lg font-extrabold tracking-wide text-zinc-200 truncate max-w-[90px] sm:max-w-[120px] group-hover:text-blue-400 transition-colors">Los Otros</h2>
+      </div>
+      <div id="team3-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+        <input id="team3-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500/60 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(3)">
+      </div>
+
+      <div id="matches-3" class="mt-4 sm:mt-5 min-h-[24px] flex flex-wrap justify-center gap-x-2 gap-y-1 px-1"></div>
+
+      <div class="mt-2 sm:mt-3 flex flex-col items-center">
+        <div id="score3-text" class="score-num text-5xl sm:text-6xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
+        <span id="phase3-text" class="text-[9px] sm:text-[11px] font-bold uppercase tracking-[0.2em] mt-1.5 text-blue-400/70">Malas</span>
+      </div>
+
+      <div class="w-full mt-3 px-1">
+        <div class="progress-track h-[3px] w-full">
+          <div id="progress-3" class="progress-fill h-full bg-blue-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5 sm:gap-2 w-full mt-4 sm:mt-5 px-0.5">
+        <div class="flex gap-1.5">
+          <button id="btn-minus-3" onclick="changeScore(3, -1)" class="flex-1 flex justify-center items-center py-2.5 sm:py-3 bg-zinc-800/70 hover:bg-zinc-700/80 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-30 border border-zinc-700/40">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button onclick="changeScore(3, 1)" class="flex-1 flex justify-center items-center py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white shadow-[0_4px_20px_-4px_rgba(37,99,235,0.35)] transition-all active:scale-95 border border-blue-400/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(3, 2)" class="flex-1 py-2 sm:py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 rounded-lg text-blue-400/80 hover:text-blue-300 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-zinc-700/30">+2</button>
+          <button onclick="changeScore(3, 3)" class="flex-1 py-2 sm:py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 rounded-lg text-blue-400/80 hover:text-blue-300 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-zinc-700/30">+3</button>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <script>
-    const TEAM_1_DEFAULT = "Nosotros";
-    const TEAM_2_DEFAULT = "Ellos";
-    const TEAM_3_DEFAULT = "El Otro";
+  <!-- Bottom Actions -->
+  <div class="mt-5 flex items-center gap-3">
+    <button id="btn-undo" onclick="undoLast()" disabled class="flex items-center gap-1.5 text-zinc-600 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-600 transition-colors py-2 px-3.5 rounded-full hover:bg-zinc-800/40 text-sm font-medium">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+      Deshacer
+    </button>
+    <div class="w-px h-4 bg-zinc-800"></div>
+    <button onclick="confirmReset()" class="flex items-center gap-1.5 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3.5 rounded-full hover:bg-zinc-800/40 text-sm font-medium">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+      Reiniciar
+    </button>
+  </div>
 
-    let state = {
-      mode: 2, // 2 o 3 jugadores
-      team1: TEAM_1_DEFAULT,
-      team2: TEAM_2_DEFAULT,
-      team3: TEAM_3_DEFAULT,
-      score1: 0,
-      score2: 0,
-      score3: 0,
-      limit: 30,
-      winner: null
-    };
+  <!-- Winner Modal -->
+  <div id="winner-modal" class="hidden-el fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div class="modal-enter bg-zinc-900 border border-zinc-800/80 rounded-3xl p-7 sm:p-8 max-w-[300px] sm:max-w-[340px] w-full shadow-2xl flex flex-col items-center surface-noise">
+      <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-5 border border-blue-500/20 shadow-[0_0_30px_-5px_rgba(37,99,235,0.3)]">
+        <svg class="text-blue-400" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+      </div>
+      <p class="text-sm font-semibold text-zinc-500 uppercase tracking-widest mb-1">¡Victoria!</p>
+      <p id="winner-name" class="text-2xl sm:text-3xl text-white font-black mb-6 text-center"></p>
+      <button onclick="resetGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold text-base shadow-[0_4px_25px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        Jugar de nuevo
+      </button>
+    </div>
+  </div>
 
-    function getPhase(score) {
-      if (state.limit === 15) return "Puntos";
-      return score < 15 ? "Malas" : "Buenas";
-    }
-    
-    function getPhaseScore(score) {
-      if (state.limit === 15) return score;
-      return score <= 15 ? score : score - 15;
-    }
+  <!-- Confirm Reset Modal -->
+  <div id="confirm-modal" class="hidden-el fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="modal-enter bg-zinc-900 border border-zinc-800/80 rounded-2xl p-6 max-w-[280px] w-full shadow-2xl flex flex-col items-center">
+      <p class="text-base font-bold text-white mb-1 text-center">¿Reiniciar partida?</p>
+      <p class="text-sm text-zinc-500 mb-5 text-center">Se van a perder todos los puntos</p>
+      <div class="flex gap-2 w-full">
+        <button onclick="dismissConfirm()" class="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-zinc-300 font-semibold text-sm transition-all active:scale-95 border border-zinc-700/50">Cancelar</button>
+        <button onclick="resetGame(); dismissConfirm();" class="flex-1 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white font-semibold text-sm transition-all active:scale-95">Reiniciar</button>
+      </div>
+    </div>
+  </div>
 
-    function updateUI() {
-      // Aplicar modo 2 o 3
-      const board = document.getElementById('main-board');
-      const col3 = document.getElementById('column-3');
-      
-      if (state.mode === 3) {
-        board.classList.remove('max-w-md');
-        board.classList.add('max-w-2xl');
-        board.classList.add('mode-3');
-        col3.classList.remove('hidden-el');
-        
-        document.getElementById('btn-mode-3').className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md";
-        document.getElementById('btn-mode-2').className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700";
-      } else {
-        board.classList.remove('max-w-2xl');
-        board.classList.add('max-w-md');
-        board.classList.remove('mode-3');
-        col3.classList.add('hidden-el');
-        
-        document.getElementById('btn-mode-2').className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md";
-        document.getElementById('btn-mode-3').className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700";
+</div>
+
+<script>
+  const DEFAULTS = ["Nosotros", "Ellos", "Los Otros"];
+  const STORAGE_KEY = "truco_state_v2";
+
+  let state = {
+    mode: 2,
+    teams: [...DEFAULTS],
+    scores: [0, 0, 0],
+    limit: 30,
+    winner: null,
+    manos: 0
+  };
+
+  let history = [];
+
+  // --- LocalStorage ---
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.scores) { Object.assign(state, saved); }
       }
+    } catch(e) {}
+  }
 
-      // Puntos
-      document.getElementById('score1-text').innerText = getPhaseScore(state.score1);
-      document.getElementById('score2-text').innerText = getPhaseScore(state.score2);
-      document.getElementById('score3-text').innerText = getPhaseScore(state.score3);
+  // --- Haptic ---
+  function haptic(ms) {
+    try { if (navigator.vibrate) navigator.vibrate(ms || 15); } catch(e) {}
+  }
 
-      // Fases
-      document.getElementById('phase1-text').innerText = getPhase(state.score1);
-      document.getElementById('phase2-text').innerText = getPhase(state.score2);
-      document.getElementById('phase3-text').innerText = getPhase(state.score3);
+  // --- Matchsticks Rendering ---
+  function renderMatches(containerId, score) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const displayScore = state.limit === 15 ? score : (score <= 15 ? score : score - 15);
+    const fullGroups = Math.floor(displayScore / 5);
+    const remainder = displayScore % 5;
+    let html = '';
 
-      // Nombres de equipos
-      document.getElementById('team1-name').innerText = state.team1;
-      document.getElementById('team2-name').innerText = state.team2;
-      document.getElementById('team3-name').innerText = state.team3;
+    for (let g = 0; g < fullGroups; g++) {
+      html += '<span class="match-cluster">';
+      for (let s = 0; s < 4; s++) html += '<span class="match-stick lit"></span>';
+      html += '<span class="match-diagonal"></span>';
+      html += '</span>';
+    }
+    if (remainder > 0) {
+      html += '<span class="match-cluster">';
+      for (let s = 0; s < remainder; s++) html += '<span class="match-stick lit"></span>';
+      html += '</span>';
+    }
+    el.innerHTML = html;
+  }
 
-      // Botones Restar (deshabilitar si en 0)
-      document.getElementById('btn-minus-1').disabled = state.score1 === 0;
-      document.getElementById('btn-minus-2').disabled = state.score2 === 0;
-      document.getElementById('btn-minus-3').disabled = state.score3 === 0;
+  // --- Confetti ---
+  function launchConfetti() {
+    const colors = ['#3b82f6','#60a5fa','#93c5fd','#2563eb','#f59e0b','#10b981','#f472b6','#a78bfa'];
+    const container = document.body;
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+      piece.style.animationDelay = (Math.random() * 0.8) + 's';
+      piece.style.width = (Math.random() * 6 + 4) + 'px';
+      piece.style.height = (Math.random() * 6 + 4) + 'px';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '1px';
+      container.appendChild(piece);
+      setTimeout(() => piece.remove(), 4000);
+    }
+  }
 
-      // Botones Limite
-      const btn15 = document.getElementById('btn-limit-15');
-      const btn30 = document.getElementById('btn-limit-30');
-      
-      if (state.limit === 15) {
-        btn15.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md";
-        btn30.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700";
-      } else {
-        btn30.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md";
-        btn15.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700";
-      }
+  // --- Score Pop Animation ---
+  function popScore(teamIdx) {
+    const el = document.getElementById(`score${teamIdx}-text`);
+    if (!el) return;
+    el.classList.remove('score-pop');
+    void el.offsetWidth;
+    el.classList.add('score-pop');
+  }
 
-      // Modal ganador
-      const modal = document.getElementById('winner-modal');
-      if (state.winner) {
-        document.getElementById('winner-name').innerText = state.winner;
-        modal.classList.remove('hidden-el');
-      } else {
-        modal.classList.add('hidden-el');
-      }
+  // --- Toggle helpers ---
+  function setToggle(activeId, inactiveId) {
+    document.getElementById(activeId).className = "px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white";
+    document.getElementById(inactiveId).className = "px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300";
+  }
+
+  // --- UI Update ---
+  function getPhase(score) {
+    if (state.limit === 15) return "Puntos";
+    return score < 15 ? "Malas" : "Buenas";
+  }
+  function getPhaseScore(score) {
+    if (state.limit === 15) return score;
+    return score <= 15 ? score : score - 15;
+  }
+
+  function updateUI() {
+    const board = document.getElementById('main-board');
+    const col3 = document.getElementById('column-3');
+
+    if (state.mode === 3) {
+      board.classList.remove('max-w-md');
+      board.classList.add('max-w-2xl', 'mode-3');
+      col3.classList.remove('hidden-el');
+      setToggle('btn-mode-3', 'btn-mode-2');
+    } else {
+      board.classList.remove('max-w-2xl', 'mode-3');
+      board.classList.add('max-w-md');
+      col3.classList.add('hidden-el');
+      setToggle('btn-mode-2', 'btn-mode-3');
     }
 
-    function changeScore(team, amount) {
-      if (state.winner) return;
+    if (state.limit === 15) setToggle('btn-limit-15', 'btn-limit-30');
+    else setToggle('btn-limit-30', 'btn-limit-15');
 
-      if (team === 1) {
-        state.score1 = Math.max(0, state.score1 + amount);
-        if (state.score1 >= state.limit) state.winner = state.team1;
-      } else if (team === 2) {
-        state.score2 = Math.max(0, state.score2 + amount);
-        if (state.score2 >= state.limit) state.winner = state.team2;
-      } else if (team === 3) {
-        state.score3 = Math.max(0, state.score3 + amount);
-        if (state.score3 >= state.limit) state.winner = state.team3;
-      }
-      
-      updateUI();
+    for (let i = 0; i < 3; i++) {
+      const t = i + 1;
+      document.getElementById(`score${t}-text`).innerText = getPhaseScore(state.scores[i]);
+      document.getElementById(`phase${t}-text`).innerText = getPhase(state.scores[i]);
+      document.getElementById(`team${t}-name`).innerText = state.teams[i];
+      document.getElementById(`btn-minus-${t}`).disabled = state.scores[i] === 0;
+
+      const pct = Math.min(100, (state.scores[i] / state.limit) * 100);
+      document.getElementById(`progress-${t}`).style.width = pct + '%';
+
+      renderMatches(`matches-${t}`, state.scores[i]);
     }
 
-    function setLimit(newLimit) {
-      if (state.limit === newLimit) return;
-      state.limit = newLimit;
-      resetGame();
-    }
-    
-    function setMode(newMode) {
-      if (state.mode === newMode) return;
-      state.mode = newMode;
-      resetGame();
-    }
+    document.getElementById('mano-count').innerText = state.manos;
+    document.getElementById('btn-undo').disabled = history.length === 0;
 
-    function resetGame() {
-      state.score1 = 0;
-      state.score2 = 0;
-      state.score3 = 0;
-      state.winner = null;
-      updateUI();
+    const modal = document.getElementById('winner-modal');
+    if (state.winner) {
+      document.getElementById('winner-name').innerText = state.winner;
+      modal.classList.remove('hidden-el');
+    } else {
+      modal.classList.add('hidden-el');
     }
 
-    function startEditing(teamId) {
-      document.getElementById(`team${teamId}-display`).classList.add('hidden-el');
-      const editDiv = document.getElementById(`team${teamId}-edit`);
-      editDiv.classList.remove('hidden-el');
-      
-      const input = document.getElementById(`team${teamId}-input`);
-      input.value = teamId === 1 ? state.team1 : (teamId === 2 ? state.team2 : state.team3);
-      input.focus();
-    }
+    saveState();
+  }
 
-    function saveTeam(teamId) {
-      const input = document.getElementById(`team${teamId}-input`);
-      const newName = input.value.trim();
-      
-      if (teamId === 1) {
-        state.team1 = newName || TEAM_1_DEFAULT;
-      } else if (teamId === 2) {
-        state.team2 = newName || TEAM_2_DEFAULT;
-      } else {
-        state.team3 = newName || TEAM_3_DEFAULT;
-      }
+  // --- Core Logic ---
+  function changeScore(team, amount) {
+    if (state.winner) return;
+    const idx = team - 1;
 
-      document.getElementById(`team${teamId}-edit`).classList.add('hidden-el');
-      document.getElementById(`team${teamId}-display`).classList.remove('hidden-el');
-      updateUI();
-    }
-
-    // Ocultar edición si se hace click afuera (opcional pero util)
-    document.addEventListener('click', (e) => {
-      [1, 2, 3].forEach(id => {
-        const editDiv = document.getElementById(`team${id}-edit`);
-        const displayDiv = document.getElementById(`team${id}-display`);
-        if (!editDiv.classList.contains('hidden-el') && !editDiv.contains(e.target) && !displayDiv.contains(e.target)) {
-          saveTeam(id);
-        }
-      });
+    history.push({
+      scores: [...state.scores],
+      manos: state.manos,
+      winner: state.winner
     });
+    if (history.length > 50) history.shift();
 
-    // Iniciar UI
+    state.scores[idx] = Math.max(0, state.scores[idx] + amount);
+
+    if (amount > 0) state.manos++;
+
+    if (state.scores[idx] >= state.limit) {
+      state.scores[idx] = state.limit;
+      state.winner = state.teams[idx];
+      setTimeout(launchConfetti, 100);
+      haptic(80);
+    } else {
+      haptic(15);
+    }
+
+    popScore(team);
     updateUI();
-  </script>
+  }
+
+  function undoLast() {
+    if (history.length === 0) return;
+    const prev = history.pop();
+    state.scores = prev.scores;
+    state.manos = prev.manos;
+    state.winner = prev.winner;
+    haptic(10);
+    updateUI();
+  }
+
+  function setLimit(newLimit) {
+    if (state.limit === newLimit) return;
+    state.limit = newLimit;
+    history = [];
+    resetGame();
+  }
+  function setMode(newMode) {
+    if (state.mode === newMode) return;
+    state.mode = newMode;
+    history = [];
+    resetGame();
+  }
+
+  function resetGame() {
+    state.scores = [0, 0, 0];
+    state.winner = null;
+    state.manos = 0;
+    history = [];
+    updateUI();
+  }
+
+  function confirmReset() {
+    if (state.scores.every(s => s === 0)) return;
+    document.getElementById('confirm-modal').classList.remove('hidden-el');
+  }
+  function dismissConfirm() {
+    document.getElementById('confirm-modal').classList.add('hidden-el');
+  }
+
+  // --- Team Editing ---
+  function startEditing(teamId) {
+    const idx = teamId - 1;
+    document.getElementById(`team${teamId}-display`).classList.add('hidden-el');
+    document.getElementById(`team${teamId}-edit`).classList.remove('hidden-el');
+    const input = document.getElementById(`team${teamId}-input`);
+    input.value = state.teams[idx];
+    input.focus();
+    input.select();
+  }
+  function saveTeam(teamId) {
+    const idx = teamId - 1;
+    const input = document.getElementById(`team${teamId}-input`);
+    state.teams[idx] = input.value.trim() || DEFAULTS[idx];
+    document.getElementById(`team${teamId}-edit`).classList.add('hidden-el');
+    document.getElementById(`team${teamId}-display`).classList.remove('hidden-el');
+    updateUI();
+  }
+
+  document.addEventListener('click', (e) => {
+    [1, 2, 3].forEach(id => {
+      const editDiv = document.getElementById(`team${id}-edit`);
+      const displayDiv = document.getElementById(`team${id}-display`);
+      if (!editDiv.classList.contains('hidden-el') && !editDiv.contains(e.target) && !displayDiv.contains(e.target)) {
+        saveTeam(id);
+      }
+    });
+  });
+
+  // --- Init ---
+  loadState();
+  updateUI();
+</script>
 </body>
 </html>
