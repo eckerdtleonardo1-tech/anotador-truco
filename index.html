@@ -31,28 +31,31 @@
 
     .col-divider { position: relative; }
     .col-divider:not(:last-child)::after {
-      content: ''; position: absolute; right: 0; top: 2rem; bottom: 2rem;
+      content: ''; position: absolute; right: 0; top: 2.5rem; bottom: 2.5rem;
       width: 1px; background: linear-gradient(to bottom, transparent, #333, transparent);
     }
 
-    .mode-3 .score-num { font-size: 2.8rem; }
-    .mode-3 .team-label { font-size: 0.75rem; max-width: 68px; }
-    .mode-3 .quick-btn { font-size: 0.6rem; padding: 0.3rem 0; }
+    /* Mode 3: compress a bit */
+    .mode-3 .score-num { font-size: 2.5rem; }
+    .mode-3 .team-label { font-size: 0.7rem; max-width: 62px; }
+    .mode-3 .quick-btn { font-size: 0.55rem; padding-top: 0.35rem; padding-bottom: 0.35rem; }
+    .mode-3 .quick-btn .q-sub { font-size: 7px; }
+    .mode-3 .main-btn { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .mode-3 .main-btn svg { width: 13px; height: 13px; }
     @media (min-width: 640px) {
-      .mode-3 .score-num { font-size: 3.8rem; }
-      .mode-3 .team-label { font-size: 0.95rem; max-width: 100px; }
-      .mode-3 .quick-btn { font-size: 0.75rem; }
+      .mode-3 .score-num { font-size: 3.5rem; }
+      .mode-3 .team-label { font-size: 0.9rem; max-width: 100px; }
+      .mode-3 .quick-btn { font-size: 0.7rem; }
     }
 
     /* Matchsticks */
-    .match-stick { width: 3px; height: 16px; border-radius: 1px; transition: background 0.2s; }
-    .match-cluster { position: relative; display: inline-flex; gap: 2px; padding: 0 2px; }
+    .match-stick { width: 3px; height: 18px; border-radius: 1px; transition: background 0.2s; }
+    .match-cluster { position: relative; display: inline-flex; gap: 2px; padding: 0 3px; }
     .match-diagonal {
-      position: absolute; left: -1px; top: 50%; width: calc(100% + 2px);
+      position: absolute; left: -2px; top: 50%; width: calc(100% + 4px);
       height: 2px; border-radius: 1px; transform: rotate(-35deg); transform-origin: center;
     }
 
-    /* Team color schemes */
     .team-blue .match-stick { background: #3b82f6; }
     .team-blue .match-diagonal { background: #60a5fa; }
     .team-amber .match-stick { background: #f59e0b; }
@@ -60,7 +63,6 @@
     .team-emerald .match-stick { background: #10b981; }
     .team-emerald .match-diagonal { background: #34d399; }
 
-    /* Animations */
     @keyframes scorePop { 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
     .score-pop { animation: scorePop 0.22s ease-out; }
 
@@ -85,216 +87,216 @@
     .progress-track { background: #1c1c1f; border-radius: 999px; overflow: hidden; }
     .progress-fill { transition: width 0.4s cubic-bezier(0.16,1,0.3,1); border-radius: 999px; }
 
-    /* Noise texture */
     .surface-noise {
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
     }
 
-    /* Wins badge */
     .wins-badge {
-      position: absolute; top: -6px; right: -6px;
+      position: absolute; top: -7px; right: -10px;
       min-width: 18px; height: 18px; border-radius: 999px;
       font-size: 10px; font-weight: 800; display: flex;
       align-items: center; justify-content: center; padding: 0 4px;
       border: 2px solid #0a0a0c;
     }
 
-    /* History log */
     .log-entry { border-left: 2px solid #27272a; padding-left: 8px; }
-
-    /* Glow buttons */
     .glow-blue { box-shadow: 0 4px 20px -4px rgba(59,130,246,0.3); }
     .glow-amber { box-shadow: 0 4px 20px -4px rgba(245,158,11,0.3); }
     .glow-emerald { box-shadow: 0 4px 20px -4px rgba(16,185,129,0.3); }
-
-    /* Sound toggle */
-    .toggle-dot { transition: transform 0.2s ease; }
-    .toggle-on .toggle-dot { transform: translateX(14px); }
   </style>
 </head>
 <body class="antialiased select-none">
 
-<div class="min-h-screen bg-[#0a0a0c] text-zinc-100 flex flex-col items-center py-3 px-3 relative overflow-hidden surface-noise">
+<div class="min-h-screen bg-[#0a0a0c] text-zinc-100 flex flex-col items-center py-4 px-3 relative overflow-x-hidden surface-noise">
 
   <!-- Header -->
-  <div class="mb-3 text-center flex items-center gap-2">
+  <div class="mb-4 text-center flex items-center gap-2">
     <span class="text-2xl">🃏</span>
-    <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-zinc-200">Anotador de Truco</h1>
+    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-zinc-200">Anotador de Truco</h1>
   </div>
 
   <!-- Config Bar -->
-  <div class="flex flex-row items-center gap-2 sm:gap-4 mb-4 bg-zinc-900/60 px-3 sm:px-4 py-2 rounded-2xl border border-zinc-800/50 shadow-lg backdrop-blur z-10 flex-wrap justify-center">
-
-    <div class="flex items-center gap-1.5">
-      <span class="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Puntos</span>
+  <div class="flex flex-row items-center gap-3 sm:gap-5 mb-5 bg-zinc-900/60 px-4 py-2.5 rounded-2xl border border-zinc-800/50 shadow-lg backdrop-blur z-10 flex-wrap justify-center">
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Puntos</span>
       <div class="flex bg-zinc-800/70 rounded-lg p-0.5">
-        <button id="btn-limit-15" class="px-2.5 py-1 rounded-md text-[11px] font-bold transition-all text-zinc-500" onclick="setLimit(15)">15</button>
-        <button id="btn-limit-30" class="px-2.5 py-1 rounded-md text-[11px] font-bold transition-all bg-blue-600 text-white" onclick="setLimit(30)">30</button>
+        <button id="btn-limit-15" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500" onclick="setLimit(15)">15</button>
+        <button id="btn-limit-30" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white" onclick="setLimit(30)">30</button>
       </div>
     </div>
-
-    <div class="w-px h-4 bg-zinc-700/40"></div>
-
-    <div class="flex items-center gap-1.5">
-      <span class="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Equipos</span>
+    <div class="w-px h-5 bg-zinc-700/40"></div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Equipos</span>
       <div class="flex bg-zinc-800/70 rounded-lg p-0.5">
-        <button id="btn-mode-2" class="px-2.5 py-1 rounded-md text-[11px] font-bold transition-all bg-blue-600 text-white" onclick="setMode(2)">2</button>
-        <button id="btn-mode-3" class="px-2.5 py-1 rounded-md text-[11px] font-bold transition-all text-zinc-500" onclick="setMode(3)">3</button>
+        <button id="btn-mode-2" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white" onclick="setMode(2)">2</button>
+        <button id="btn-mode-3" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500" onclick="setMode(3)">3</button>
       </div>
     </div>
-
-    <div class="w-px h-4 bg-zinc-700/40"></div>
-
-    <div class="flex items-center gap-1.5">
-      <span class="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Mano</span>
-      <span id="mano-count" class="text-xs font-extrabold text-zinc-300 tabular-nums bg-zinc-800/50 rounded-md px-1.5 py-0.5">0</span>
+    <div class="w-px h-5 bg-zinc-700/40"></div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Mano</span>
+      <span id="mano-count" class="text-sm font-extrabold text-zinc-300 tabular-nums bg-zinc-800/50 rounded-md px-2 py-0.5">0</span>
     </div>
-
-    <div class="w-px h-4 bg-zinc-700/40"></div>
-
-    <!-- Sound Toggle -->
-    <button id="sound-toggle" onclick="toggleSound()" class="flex items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors" title="Sonido">
-      <svg id="sound-icon-on" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-      <svg id="sound-icon-off" class="hidden-el" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+    <div class="w-px h-5 bg-zinc-700/40"></div>
+    <button onclick="toggleSound()" class="flex items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors" title="Sonido">
+      <svg id="sound-icon-on" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+      <svg id="sound-icon-off" class="hidden-el" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
     </button>
-
   </div>
 
   <!-- Main Board -->
-  <div id="main-board" class="flex w-full max-w-md bg-gradient-to-b from-zinc-900/70 to-zinc-900/40 rounded-3xl p-3 sm:p-5 shadow-2xl border border-zinc-800/30 relative z-10 backdrop-blur-md transition-all duration-300 surface-noise">
+  <div id="main-board" class="flex w-full max-w-lg bg-gradient-to-b from-zinc-900/70 to-zinc-900/40 rounded-3xl p-4 sm:p-6 shadow-2xl border border-zinc-800/30 relative z-10 backdrop-blur-md transition-all duration-300 surface-noise">
+
+    <!-- === COLUMN TEMPLATE (repeated for 1, 2, 3) === -->
 
     <!-- Column 1 (Blue) -->
-    <div id="column-1" class="flex-1 flex flex-col items-center px-1 sm:px-3 col-divider team-blue">
-      <!-- Name + Wins -->
+    <div id="column-1" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-blue">
       <div class="relative">
-        <div id="team1-display" class="flex items-center justify-center cursor-pointer h-[26px] group" onclick="startEditing(1)">
-          <h2 id="team1-name" class="team-label text-sm sm:text-base font-extrabold tracking-wide text-blue-300 truncate max-w-[85px] sm:max-w-[120px] group-hover:text-blue-200 transition-colors">Nosotros</h2>
+        <div id="team1-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(1)">
+          <h2 id="team1-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-blue-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-blue-200 transition-colors">Nosotros</h2>
         </div>
         <span id="wins-1" class="wins-badge bg-blue-600 text-white hidden-el">0</span>
       </div>
-      <div id="team1-edit" class="hidden-el flex items-center gap-1 justify-center h-[26px]">
-        <input id="team1-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/40 rounded-lg px-2 py-0.5 w-20 text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(1)">
+      <div id="team1-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+        <input id="team1-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(1)">
       </div>
 
-      <div id="matches-1" class="mt-3 min-h-[20px] flex flex-wrap justify-center gap-x-2 gap-y-1 px-1"></div>
+      <div id="matches-1" class="mt-4 min-h-[22px] flex flex-wrap justify-center gap-x-3 gap-y-1.5 px-1"></div>
 
-      <div class="mt-1.5 flex flex-col items-center">
-        <div id="score1-text" class="score-num text-5xl sm:text-6xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
-        <span id="phase1-text" class="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] mt-1 text-blue-400/70">Malas</span>
+      <div class="mt-3 flex flex-col items-center">
+        <div id="score1-text" class="score-num text-5xl sm:text-7xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
+        <span id="phase1-text" class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] mt-2 text-blue-400/70">Malas</span>
       </div>
 
-      <div class="w-full mt-2 px-1">
-        <div class="progress-track h-[3px] w-full">
+      <div class="w-full mt-3 px-1">
+        <div class="progress-track h-[4px] w-full">
           <div id="progress-1" class="progress-fill h-full bg-gradient-to-r from-blue-600 to-blue-400" style="width:0%"></div>
         </div>
       </div>
 
-      <div class="flex flex-col gap-1 sm:gap-1.5 w-full mt-3 sm:mt-4 px-0.5">
-        <div class="flex gap-1">
-          <button id="btn-minus-1" onclick="changeScore(1,-1)" class="flex-1 flex justify-center items-center py-2.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <!-- Buttons -->
+      <div class="flex flex-col gap-2 w-full mt-5 sm:mt-6">
+        <!-- +1 / -1 -->
+        <div class="flex gap-2">
+          <button id="btn-minus-1" onclick="changeScore(1,-1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
-          <button onclick="changeScore(1,1)" class="flex-1 flex justify-center items-center py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white glow-blue transition-all active:scale-95 border border-blue-400/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <button onclick="changeScore(1,1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white glow-blue transition-all active:scale-95 border border-blue-400/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
         </div>
-        <div class="flex gap-1">
-          <button onclick="changeScore(1,2)" class="quick-btn flex-1 py-1.5 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/80 font-bold text-[11px] transition-all active:scale-95 border border-blue-800/20">Envido<br><span class="text-[9px] opacity-60">+2</span></button>
-          <button onclick="changeScore(1,3)" class="quick-btn flex-1 py-1.5 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/80 font-bold text-[11px] transition-all active:scale-95 border border-blue-800/20">Truco<br><span class="text-[9px] opacity-60">+3</span></button>
+        <!-- Envido / Real Envido -->
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(1,2,'Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-blue-800/20 leading-tight">Envido<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+2</span></button>
+          <button onclick="changeScore(1,3,'R. Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-blue-800/20 leading-tight">R. Envido<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+3</span></button>
         </div>
-        <div class="flex gap-1">
-          <button onclick="changeScore(1,4)" class="quick-btn flex-1 py-1.5 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/60 font-bold text-[11px] transition-all active:scale-95 border border-blue-800/15">Vale 4<br><span class="text-[9px] opacity-60">+4</span></button>
-          <button onclick="faltaEnvido(1)" class="quick-btn flex-1 py-1.5 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/60 font-bold text-[11px] transition-all active:scale-95 border border-blue-800/15">Falta<br><span class="text-[9px] opacity-60">→fin</span></button>
+        <!-- Truco / Retruco -->
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(1,2,'Truco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/70 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-blue-800/15 leading-tight">Truco<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+2</span></button>
+          <button onclick="changeScore(1,3,'Retruco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/70 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-blue-800/15 leading-tight">Retruco<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+3</span></button>
+        </div>
+        <!-- Vale 4 / Falta Envido -->
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(1,4,'Vale 4')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/20 hover:bg-blue-900/25 rounded-lg text-blue-300/60 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-blue-800/10 leading-tight">Vale 4<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+4</span></button>
+          <button onclick="faltaEnvido(1)" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/20 hover:bg-blue-900/25 rounded-lg text-blue-300/60 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-blue-800/10 leading-tight">Falta E.<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">→máx</span></button>
         </div>
       </div>
     </div>
 
     <!-- Column 2 (Amber) -->
-    <div id="column-2" class="flex-1 flex flex-col items-center px-1 sm:px-3 col-divider team-amber">
+    <div id="column-2" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-amber">
       <div class="relative">
-        <div id="team2-display" class="flex items-center justify-center cursor-pointer h-[26px] group" onclick="startEditing(2)">
-          <h2 id="team2-name" class="team-label text-sm sm:text-base font-extrabold tracking-wide text-amber-300 truncate max-w-[85px] sm:max-w-[120px] group-hover:text-amber-200 transition-colors">Ellos</h2>
+        <div id="team2-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(2)">
+          <h2 id="team2-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-amber-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-amber-200 transition-colors">Ellos</h2>
         </div>
         <span id="wins-2" class="wins-badge bg-amber-600 text-white hidden-el">0</span>
       </div>
-      <div id="team2-edit" class="hidden-el flex items-center gap-1 justify-center h-[26px]">
-        <input id="team2-input" type="text" class="bg-zinc-800 text-zinc-100 border border-amber-500/40 rounded-lg px-2 py-0.5 w-20 text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(2)">
+      <div id="team2-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+        <input id="team2-input" type="text" class="bg-zinc-800 text-zinc-100 border border-amber-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(2)">
       </div>
 
-      <div id="matches-2" class="mt-3 min-h-[20px] flex flex-wrap justify-center gap-x-2 gap-y-1 px-1"></div>
+      <div id="matches-2" class="mt-4 min-h-[22px] flex flex-wrap justify-center gap-x-3 gap-y-1.5 px-1"></div>
 
-      <div class="mt-1.5 flex flex-col items-center">
-        <div id="score2-text" class="score-num text-5xl sm:text-6xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
-        <span id="phase2-text" class="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] mt-1 text-amber-400/70">Malas</span>
+      <div class="mt-3 flex flex-col items-center">
+        <div id="score2-text" class="score-num text-5xl sm:text-7xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
+        <span id="phase2-text" class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] mt-2 text-amber-400/70">Malas</span>
       </div>
 
-      <div class="w-full mt-2 px-1">
-        <div class="progress-track h-[3px] w-full">
+      <div class="w-full mt-3 px-1">
+        <div class="progress-track h-[4px] w-full">
           <div id="progress-2" class="progress-fill h-full bg-gradient-to-r from-amber-600 to-amber-400" style="width:0%"></div>
         </div>
       </div>
 
-      <div class="flex flex-col gap-1 sm:gap-1.5 w-full mt-3 sm:mt-4 px-0.5">
-        <div class="flex gap-1">
-          <button id="btn-minus-2" onclick="changeScore(2,-1)" class="flex-1 flex justify-center items-center py-2.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <div class="flex flex-col gap-2 w-full mt-5 sm:mt-6">
+        <div class="flex gap-2">
+          <button id="btn-minus-2" onclick="changeScore(2,-1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
-          <button onclick="changeScore(2,1)" class="flex-1 flex justify-center items-center py-2.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-white glow-amber transition-all active:scale-95 border border-amber-400/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <button onclick="changeScore(2,1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-white glow-amber transition-all active:scale-95 border border-amber-400/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
         </div>
-        <div class="flex gap-1">
-          <button onclick="changeScore(2,2)" class="quick-btn flex-1 py-1.5 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/80 font-bold text-[11px] transition-all active:scale-95 border border-amber-800/20">Envido<br><span class="text-[9px] opacity-60">+2</span></button>
-          <button onclick="changeScore(2,3)" class="quick-btn flex-1 py-1.5 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/80 font-bold text-[11px] transition-all active:scale-95 border border-amber-800/20">Truco<br><span class="text-[9px] opacity-60">+3</span></button>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(2,2,'Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-amber-800/20 leading-tight">Envido<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+2</span></button>
+          <button onclick="changeScore(2,3,'R. Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-amber-800/20 leading-tight">R. Envido<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+3</span></button>
         </div>
-        <div class="flex gap-1">
-          <button onclick="changeScore(2,4)" class="quick-btn flex-1 py-1.5 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/60 font-bold text-[11px] transition-all active:scale-95 border border-amber-800/15">Vale 4<br><span class="text-[9px] opacity-60">+4</span></button>
-          <button onclick="faltaEnvido(2)" class="quick-btn flex-1 py-1.5 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/60 font-bold text-[11px] transition-all active:scale-95 border border-amber-800/15">Falta<br><span class="text-[9px] opacity-60">→fin</span></button>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(2,2,'Truco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/70 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-amber-800/15 leading-tight">Truco<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+2</span></button>
+          <button onclick="changeScore(2,3,'Retruco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/70 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-amber-800/15 leading-tight">Retruco<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+3</span></button>
+        </div>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(2,4,'Vale 4')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/20 hover:bg-amber-900/25 rounded-lg text-amber-300/60 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-amber-800/10 leading-tight">Vale 4<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+4</span></button>
+          <button onclick="faltaEnvido(2)" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/20 hover:bg-amber-900/25 rounded-lg text-amber-300/60 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-amber-800/10 leading-tight">Falta E.<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">→máx</span></button>
         </div>
       </div>
     </div>
 
     <!-- Column 3 (Emerald) -->
-    <div id="column-3" class="flex-1 flex flex-col items-center px-1 sm:px-3 hidden-el col-divider team-emerald">
+    <div id="column-3" class="flex-1 flex flex-col items-center px-2 sm:px-4 hidden-el col-divider team-emerald">
       <div class="relative">
-        <div id="team3-display" class="flex items-center justify-center cursor-pointer h-[26px] group" onclick="startEditing(3)">
-          <h2 id="team3-name" class="team-label text-sm sm:text-base font-extrabold tracking-wide text-emerald-300 truncate max-w-[85px] sm:max-w-[120px] group-hover:text-emerald-200 transition-colors">Los Otros</h2>
+        <div id="team3-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(3)">
+          <h2 id="team3-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-emerald-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-emerald-200 transition-colors">Los Otros</h2>
         </div>
         <span id="wins-3" class="wins-badge bg-emerald-600 text-white hidden-el">0</span>
       </div>
-      <div id="team3-edit" class="hidden-el flex items-center gap-1 justify-center h-[26px]">
-        <input id="team3-input" type="text" class="bg-zinc-800 text-zinc-100 border border-emerald-500/40 rounded-lg px-2 py-0.5 w-20 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(3)">
+      <div id="team3-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+        <input id="team3-input" type="text" class="bg-zinc-800 text-zinc-100 border border-emerald-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(3)">
       </div>
 
-      <div id="matches-3" class="mt-3 min-h-[20px] flex flex-wrap justify-center gap-x-2 gap-y-1 px-1"></div>
+      <div id="matches-3" class="mt-4 min-h-[22px] flex flex-wrap justify-center gap-x-3 gap-y-1.5 px-1"></div>
 
-      <div class="mt-1.5 flex flex-col items-center">
-        <div id="score3-text" class="score-num text-5xl sm:text-6xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
-        <span id="phase3-text" class="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] mt-1 text-emerald-400/70">Malas</span>
+      <div class="mt-3 flex flex-col items-center">
+        <div id="score3-text" class="score-num text-5xl sm:text-7xl leading-none font-black text-white tabular-nums tracking-tighter">0</div>
+        <span id="phase3-text" class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] mt-2 text-emerald-400/70">Malas</span>
       </div>
 
-      <div class="w-full mt-2 px-1">
-        <div class="progress-track h-[3px] w-full">
+      <div class="w-full mt-3 px-1">
+        <div class="progress-track h-[4px] w-full">
           <div id="progress-3" class="progress-fill h-full bg-gradient-to-r from-emerald-600 to-emerald-400" style="width:0%"></div>
         </div>
       </div>
 
-      <div class="flex flex-col gap-1 sm:gap-1.5 w-full mt-3 sm:mt-4 px-0.5">
-        <div class="flex gap-1">
-          <button id="btn-minus-3" onclick="changeScore(3,-1)" class="flex-1 flex justify-center items-center py-2.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <div class="flex flex-col gap-2 w-full mt-5 sm:mt-6">
+        <div class="flex gap-2">
+          <button id="btn-minus-3" onclick="changeScore(3,-1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
-          <button onclick="changeScore(3,1)" class="flex-1 flex justify-center items-center py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white glow-emerald transition-all active:scale-95 border border-emerald-400/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <button onclick="changeScore(3,1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white glow-emerald transition-all active:scale-95 border border-emerald-400/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
         </div>
-        <div class="flex gap-1">
-          <button onclick="changeScore(3,2)" class="quick-btn flex-1 py-1.5 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/80 font-bold text-[11px] transition-all active:scale-95 border border-emerald-800/20">Envido<br><span class="text-[9px] opacity-60">+2</span></button>
-          <button onclick="changeScore(3,3)" class="quick-btn flex-1 py-1.5 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/80 font-bold text-[11px] transition-all active:scale-95 border border-emerald-800/20">Truco<br><span class="text-[9px] opacity-60">+3</span></button>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(3,2,'Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-emerald-800/20 leading-tight">Envido<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+2</span></button>
+          <button onclick="changeScore(3,3,'R. Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-emerald-800/20 leading-tight">R. Envido<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+3</span></button>
         </div>
-        <div class="flex gap-1">
-          <button onclick="changeScore(3,4)" class="quick-btn flex-1 py-1.5 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/60 font-bold text-[11px] transition-all active:scale-95 border border-emerald-800/15">Vale 4<br><span class="text-[9px] opacity-60">+4</span></button>
-          <button onclick="faltaEnvido(3)" class="quick-btn flex-1 py-1.5 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/60 font-bold text-[11px] transition-all active:scale-95 border border-emerald-800/15">Falta<br><span class="text-[9px] opacity-60">→fin</span></button>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(3,2,'Truco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/70 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-emerald-800/15 leading-tight">Truco<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+2</span></button>
+          <button onclick="changeScore(3,3,'Retruco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/70 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-emerald-800/15 leading-tight">Retruco<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+3</span></button>
+        </div>
+        <div class="flex gap-1.5">
+          <button onclick="changeScore(3,4,'Vale 4')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/20 hover:bg-emerald-900/25 rounded-lg text-emerald-300/60 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-emerald-800/10 leading-tight">Vale 4<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">+4</span></button>
+          <button onclick="faltaEnvido(3)" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/20 hover:bg-emerald-900/25 rounded-lg text-emerald-300/60 font-bold text-xs sm:text-sm transition-all active:scale-95 border border-emerald-800/10 leading-tight">Falta E.<br><span class="q-sub text-[9px] sm:text-[10px] opacity-50">→máx</span></button>
         </div>
       </div>
     </div>
@@ -302,42 +304,42 @@
   </div>
 
   <!-- Bottom Actions -->
-  <div class="mt-4 flex items-center gap-2 flex-wrap justify-center">
-    <button id="btn-undo" onclick="undoLast()" disabled class="flex items-center gap-1 text-zinc-600 disabled:opacity-25 hover:text-zinc-300 transition-colors py-1.5 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
+  <div class="mt-5 flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
+    <button id="btn-undo" onclick="undoLast()" disabled class="flex items-center gap-1 text-zinc-600 disabled:opacity-25 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
       Deshacer
     </button>
     <div class="w-px h-3.5 bg-zinc-800"></div>
-    <button onclick="toggleHistory()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-1.5 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
+    <button onclick="toggleHistory()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
       Historial
     </button>
     <div class="w-px h-3.5 bg-zinc-800"></div>
-    <button onclick="shareScore()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-1.5 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
+    <button onclick="shareScore()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
       Compartir
     </button>
     <div class="w-px h-3.5 bg-zinc-800"></div>
-    <button onclick="confirmReset()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-1.5 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
+    <button onclick="confirmReset()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
       Reiniciar
     </button>
   </div>
 
   <!-- History Panel -->
-  <div id="history-panel" class="hidden-el w-full max-w-md mt-3 bg-zinc-900/50 rounded-2xl border border-zinc-800/30 p-3 z-10 slide-down">
+  <div id="history-panel" class="hidden-el w-full max-w-lg mt-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/30 p-4 z-10 slide-down">
     <div class="flex items-center justify-between mb-2">
       <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Últimas jugadas</span>
-      <button onclick="toggleHistory()" class="text-zinc-600 hover:text-zinc-300 transition-colors">
+      <button onclick="toggleHistory()" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
     <div id="history-log" class="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto text-xs"></div>
-    <p id="history-empty" class="text-center text-zinc-600 text-xs py-3">No hay jugadas todavía</p>
+    <p id="history-empty" class="text-center text-zinc-600 text-xs py-4">No hay jugadas todavía</p>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="hidden-el fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-800 text-zinc-200 text-xs font-semibold px-4 py-2 rounded-full border border-zinc-700/50 shadow-lg z-50 transition-all"></div>
+  <div id="toast" class="hidden-el fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-800 text-zinc-200 text-xs font-semibold px-4 py-2 rounded-full border border-zinc-700/50 shadow-lg z-50"></div>
 
   <!-- Winner Modal -->
   <div id="winner-modal" class="hidden-el fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -348,21 +350,21 @@
       <p class="text-sm font-semibold text-zinc-500 uppercase tracking-widest mb-1">🏆 ¡Victoria!</p>
       <p id="winner-name" class="text-2xl sm:text-3xl text-white font-black mb-1 text-center"></p>
       <p id="winner-score-detail" class="text-sm text-zinc-500 mb-5"></p>
-      <button onclick="resetGame()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+      <button onclick="resetGame()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
         Jugar de nuevo
       </button>
     </div>
   </div>
 
-  <!-- Confirm Reset Modal -->
+  <!-- Confirm Modal -->
   <div id="confirm-modal" class="hidden-el fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
     <div class="modal-enter bg-zinc-900 border border-zinc-800/70 rounded-2xl p-5 max-w-[260px] w-full shadow-2xl flex flex-col items-center">
       <p class="text-sm font-bold text-white mb-1">¿Reiniciar partida?</p>
       <p class="text-xs text-zinc-500 mb-4 text-center">Se pierden los puntos de esta partida</p>
       <div class="flex gap-2 w-full">
-        <button onclick="dismissConfirm()" class="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-zinc-300 font-semibold text-xs transition-all active:scale-95 border border-zinc-700/40">Cancelar</button>
-        <button onclick="resetGame(); dismissConfirm();" class="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-xl text-white font-semibold text-xs transition-all active:scale-95">Reiniciar</button>
+        <button onclick="dismissConfirm()" class="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-zinc-300 font-semibold text-xs transition-all active:scale-95 border border-zinc-700/40">Cancelar</button>
+        <button onclick="resetGame(); dismissConfirm();" class="flex-1 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white font-semibold text-xs transition-all active:scale-95">Reiniciar</button>
       </div>
     </div>
   </div>
@@ -372,8 +374,8 @@
 <script>
   const DEFAULTS = ["Nosotros", "Ellos", "Los Otros"];
   const COLORS = ["blue", "amber", "emerald"];
-  const STORAGE_KEY = "truco_v3";
-  const WINS_KEY = "truco_wins_v3";
+  const SK = "truco_v4";
+  const WK = "truco_wins_v4";
 
   let state = { mode:2, teams:[...DEFAULTS], scores:[0,0,0], limit:30, winner:null, manos:0 };
   let wins = [0,0,0];
@@ -382,303 +384,183 @@
   let soundEnabled = true;
   let audioCtx = null;
 
-  // --- Storage ---
-  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); localStorage.setItem(WINS_KEY, JSON.stringify(wins)); } catch(e){} }
+  // Storage
+  function save() { try { localStorage.setItem(SK,JSON.stringify(state)); localStorage.setItem(WK,JSON.stringify(wins)); } catch(e){} }
   function load() {
     try {
-      const s = localStorage.getItem(STORAGE_KEY);
-      if(s) { const p = JSON.parse(s); if(p&&p.scores) Object.assign(state, p); }
-      const w = localStorage.getItem(WINS_KEY);
-      if(w) { const p = JSON.parse(w); if(Array.isArray(p)) wins = p; }
+      const s=localStorage.getItem(SK); if(s){const p=JSON.parse(s); if(p&&p.scores) Object.assign(state,p);}
+      const w=localStorage.getItem(WK); if(w){const p=JSON.parse(w); if(Array.isArray(p)) wins=p;}
     } catch(e){}
   }
 
-  // --- Sound ---
+  // Sound
   function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-  function playTick(freq, dur) {
+  function playTick(freq,dur) {
     if(!soundEnabled) return;
-    try {
-      initAudio();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.frequency.value = freq || 600;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (dur||0.08));
-      osc.start(); osc.stop(audioCtx.currentTime + (dur||0.08));
-    } catch(e){}
+    try { initAudio(); const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value=freq||600; o.type='sine'; g.gain.setValueAtTime(0.07,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+(dur||0.08)); o.start(); o.stop(audioCtx.currentTime+(dur||0.08)); } catch(e){}
   }
-  function playWin() {
-    if(!soundEnabled) return;
-    [0,150,300].forEach((d,i) => setTimeout(()=>playTick(500+i*200, 0.15), d));
-  }
-  function toggleSound() {
-    soundEnabled = !soundEnabled;
-    document.getElementById('sound-icon-on').classList.toggle('hidden-el', !soundEnabled);
-    document.getElementById('sound-icon-off').classList.toggle('hidden-el', soundEnabled);
-  }
+  function playWin() { if(!soundEnabled) return; [0,150,300].forEach((d,i)=>setTimeout(()=>playTick(500+i*200,0.15),d)); }
+  function toggleSound() { soundEnabled=!soundEnabled; document.getElementById('sound-icon-on').classList.toggle('hidden-el',!soundEnabled); document.getElementById('sound-icon-off').classList.toggle('hidden-el',soundEnabled); }
 
-  // --- Haptic ---
+  // Haptic
   function haptic(ms) { try { if(navigator.vibrate) navigator.vibrate(ms||15); } catch(e){} }
 
-  // --- Matchsticks ---
-  function renderMatches(id, score) {
-    const el = document.getElementById(id);
-    if(!el) return;
-    const ds = state.limit===15 ? score : (score<=15 ? score : score-15);
-    const full = Math.floor(ds/5), rem = ds%5;
-    let h = '';
-    for(let g=0; g<full; g++) {
-      h += '<span class="match-cluster">';
-      for(let s=0; s<4; s++) h += '<span class="match-stick"></span>';
-      h += '<span class="match-diagonal"></span></span>';
-    }
-    if(rem>0) {
-      h += '<span class="match-cluster">';
-      for(let s=0; s<rem; s++) h += '<span class="match-stick"></span>';
-      h += '</span>';
-    }
-    el.innerHTML = h;
+  // Matchsticks
+  function renderMatches(id,score) {
+    const el=document.getElementById(id); if(!el) return;
+    const ds = state.limit===15 ? score : (score<=15?score:score-15);
+    const full=Math.floor(ds/5), rem=ds%5;
+    let h='';
+    for(let g=0;g<full;g++) { h+='<span class="match-cluster">'; for(let s=0;s<4;s++) h+='<span class="match-stick"></span>'; h+='<span class="match-diagonal"></span></span>'; }
+    if(rem>0) { h+='<span class="match-cluster">'; for(let s=0;s<rem;s++) h+='<span class="match-stick"></span>'; h+='</span>'; }
+    el.innerHTML=h;
   }
 
-  // --- Confetti ---
+  // Confetti
   function launchConfetti() {
-    const cols = ['#3b82f6','#f59e0b','#10b981','#60a5fa','#fbbf24','#34d399','#f472b6','#a78bfa','#fb923c'];
-    for(let i=0; i<70; i++) {
-      const p = document.createElement('div');
-      p.className = 'confetti-piece';
-      p.style.left = Math.random()*100+'vw';
-      p.style.background = cols[Math.floor(Math.random()*cols.length)];
-      p.style.animationDuration = (Math.random()*2+1.5)+'s';
-      p.style.animationDelay = (Math.random()*0.6)+'s';
-      p.style.width = (Math.random()*6+4)+'px';
-      p.style.height = (Math.random()*6+4)+'px';
-      p.style.borderRadius = Math.random()>0.5?'50%':'2px';
-      document.body.appendChild(p);
-      setTimeout(()=>p.remove(), 4500);
-    }
+    const cols=['#3b82f6','#f59e0b','#10b981','#60a5fa','#fbbf24','#34d399','#f472b6','#a78bfa','#fb923c'];
+    for(let i=0;i<70;i++) { const p=document.createElement('div'); p.className='confetti-piece'; p.style.left=Math.random()*100+'vw'; p.style.background=cols[Math.floor(Math.random()*cols.length)]; p.style.animationDuration=(Math.random()*2+1.5)+'s'; p.style.animationDelay=(Math.random()*0.6)+'s'; p.style.width=(Math.random()*6+4)+'px'; p.style.height=(Math.random()*6+4)+'px'; p.style.borderRadius=Math.random()>0.5?'50%':'2px'; document.body.appendChild(p); setTimeout(()=>p.remove(),4500); }
   }
 
-  // --- Score Pop ---
-  function popScore(t) {
-    const el = document.getElementById(`score${t}-text`);
-    if(!el) return;
-    el.classList.remove('score-pop');
-    void el.offsetWidth;
-    el.classList.add('score-pop');
-  }
+  // Score pop
+  function popScore(t) { const el=document.getElementById(`score${t}-text`); if(!el) return; el.classList.remove('score-pop'); void el.offsetWidth; el.classList.add('score-pop'); }
 
-  // --- Toggle Helpers ---
-  function setToggle(on, off) {
-    document.getElementById(on).className = "px-2.5 py-1 rounded-md text-[11px] font-bold transition-all bg-blue-600 text-white";
-    document.getElementById(off).className = "px-2.5 py-1 rounded-md text-[11px] font-bold transition-all text-zinc-500 hover:text-zinc-300";
-  }
+  // Toggle helpers
+  function setToggle(on,off) { document.getElementById(on).className="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white"; document.getElementById(off).className="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300"; }
 
-  // --- Phase ---
+  // Phase
   function getPhase(s) { return state.limit===15?"Puntos":(s<15?"Malas":"Buenas"); }
   function getPhaseScore(s) { return state.limit===15?s:(s<=15?s:s-15); }
 
-  // --- History Log ---
-  function addLog(teamIdx, amount, label) {
-    const entry = { team: state.teams[teamIdx], color: COLORS[teamIdx], amount, label, time: new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) };
-    actionLog.push(entry);
-    if(actionLog.length > 30) actionLog.shift();
+  // History
+  function addLog(idx,amount,label) {
+    actionLog.push({ team:state.teams[idx], color:COLORS[idx], amount, label:label||'', time:new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) });
+    if(actionLog.length>30) actionLog.shift();
   }
-
   function renderHistory() {
-    const container = document.getElementById('history-log');
-    const empty = document.getElementById('history-empty');
-    if(actionLog.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden-el'); return; }
-    empty.classList.add('hidden-el');
-    const colorMap = { blue:'text-blue-400', amber:'text-amber-400', emerald:'text-emerald-400' };
-    container.innerHTML = actionLog.slice().reverse().map(e => `
-      <div class="log-entry py-1 flex items-center justify-between">
-        <span>
-          <span class="${colorMap[e.color]} font-bold">${e.team}</span>
-          <span class="text-zinc-500 ml-1">${e.label||''} <span class="font-bold text-zinc-300">${e.amount>0?'+'+e.amount:e.amount}</span></span>
-        </span>
-        <span class="text-zinc-600 text-[10px]">${e.time}</span>
-      </div>
-    `).join('');
+    const c=document.getElementById('history-log'), e=document.getElementById('history-empty');
+    if(actionLog.length===0) { c.innerHTML=''; e.classList.remove('hidden-el'); return; }
+    e.classList.add('hidden-el');
+    const cm={blue:'text-blue-400',amber:'text-amber-400',emerald:'text-emerald-400'};
+    c.innerHTML=actionLog.slice().reverse().map(x=>`<div class="log-entry py-1 flex items-center justify-between"><span><span class="${cm[x.color]} font-bold">${x.team}</span> <span class="text-zinc-500">${x.label} <span class="font-bold text-zinc-300">${x.amount>0?'+'+x.amount:x.amount}</span></span></span><span class="text-zinc-600 text-[10px]">${x.time}</span></div>`).join('');
   }
+  function toggleHistory() { const p=document.getElementById('history-panel'); p.classList.toggle('hidden-el'); if(!p.classList.contains('hidden-el')) renderHistory(); }
 
-  function toggleHistory() {
-    const panel = document.getElementById('history-panel');
-    panel.classList.toggle('hidden-el');
-    if(!panel.classList.contains('hidden-el')) renderHistory();
-  }
+  // Toast
+  function showToast(msg) { const t=document.getElementById('toast'); t.innerText=msg; t.classList.remove('hidden-el'); setTimeout(()=>t.classList.add('hidden-el'),2000); }
 
-  // --- Toast ---
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.classList.remove('hidden-el');
-    setTimeout(() => t.classList.add('hidden-el'), 2000);
-  }
-
-  // --- Share ---
+  // Share
   function shareScore() {
-    let text = `🃏 Truco — Mano ${state.manos}\n`;
-    const count = state.mode;
-    for(let i=0; i<count; i++) text += `${state.teams[i]}: ${state.scores[i]} pts\n`;
-    if(state.winner) text += `🏆 ¡Ganó ${state.winner}!`;
-    if(navigator.share) {
-      navigator.share({ title:'Anotador de Truco', text }).catch(()=>{});
-    } else {
-      navigator.clipboard.writeText(text).then(()=>showToast('📋 Puntaje copiado')).catch(()=>{});
-    }
+    let text=`🃏 Truco — Mano ${state.manos}\n`;
+    for(let i=0;i<state.mode;i++) text+=`${state.teams[i]}: ${state.scores[i]} pts\n`;
+    if(state.winner) text+=`🏆 ¡Ganó ${state.winner}!`;
+    if(navigator.share) navigator.share({title:'Anotador de Truco',text}).catch(()=>{});
+    else navigator.clipboard.writeText(text).then(()=>showToast('📋 Puntaje copiado')).catch(()=>{});
   }
 
-  // --- UI ---
+  // UI
   function updateUI() {
-    const board = document.getElementById('main-board');
-    const col3 = document.getElementById('column-3');
-
+    const board=document.getElementById('main-board'), col3=document.getElementById('column-3');
     if(state.mode===3) {
-      board.classList.remove('max-w-md'); board.classList.add('max-w-2xl','mode-3');
-      col3.classList.remove('hidden-el');
-      setToggle('btn-mode-3','btn-mode-2');
+      board.classList.remove('max-w-lg'); board.classList.add('max-w-3xl','mode-3');
+      col3.classList.remove('hidden-el'); setToggle('btn-mode-3','btn-mode-2');
     } else {
-      board.classList.remove('max-w-2xl','mode-3'); board.classList.add('max-w-md');
-      col3.classList.add('hidden-el');
-      setToggle('btn-mode-2','btn-mode-3');
+      board.classList.remove('max-w-3xl','mode-3'); board.classList.add('max-w-lg');
+      col3.classList.add('hidden-el'); setToggle('btn-mode-2','btn-mode-3');
     }
+    if(state.limit===15) setToggle('btn-limit-15','btn-limit-30'); else setToggle('btn-limit-30','btn-limit-15');
 
-    if(state.limit===15) setToggle('btn-limit-15','btn-limit-30');
-    else setToggle('btn-limit-30','btn-limit-15');
-
-    for(let i=0; i<3; i++) {
-      const t = i+1;
-      document.getElementById(`score${t}-text`).innerText = getPhaseScore(state.scores[i]);
-      document.getElementById(`phase${t}-text`).innerText = getPhase(state.scores[i]);
-      document.getElementById(`team${t}-name`).innerText = state.teams[i];
-      document.getElementById(`btn-minus-${t}`).disabled = state.scores[i]===0;
-      document.getElementById(`progress-${t}`).style.width = Math.min(100,(state.scores[i]/state.limit)*100)+'%';
-      renderMatches(`matches-${t}`, state.scores[i]);
-
-      const wb = document.getElementById(`wins-${t}`);
-      if(wins[i]>0) { wb.classList.remove('hidden-el'); wb.innerText = wins[i]; }
-      else { wb.classList.add('hidden-el'); }
+    for(let i=0;i<3;i++) {
+      const t=i+1;
+      document.getElementById(`score${t}-text`).innerText=getPhaseScore(state.scores[i]);
+      document.getElementById(`phase${t}-text`).innerText=getPhase(state.scores[i]);
+      document.getElementById(`team${t}-name`).innerText=state.teams[i];
+      document.getElementById(`btn-minus-${t}`).disabled=state.scores[i]===0;
+      document.getElementById(`progress-${t}`).style.width=Math.min(100,(state.scores[i]/state.limit)*100)+'%';
+      renderMatches(`matches-${t}`,state.scores[i]);
+      const wb=document.getElementById(`wins-${t}`);
+      if(wins[i]>0){wb.classList.remove('hidden-el');wb.innerText=wins[i];} else wb.classList.add('hidden-el');
     }
+    document.getElementById('mano-count').innerText=state.manos;
+    document.getElementById('btn-undo').disabled=undoStack.length===0;
 
-    document.getElementById('mano-count').innerText = state.manos;
-    document.getElementById('btn-undo').disabled = undoStack.length===0;
-
-    const modal = document.getElementById('winner-modal');
+    const modal=document.getElementById('winner-modal');
     if(state.winner) {
-      document.getElementById('winner-name').innerText = state.winner;
-      const winIdx = state.teams.indexOf(state.winner);
-      const wg = document.getElementById('winner-glow');
-      const colorClasses = {
-        0: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-        1: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-        2: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-      };
-      wg.className = 'w-16 h-16 rounded-full flex items-center justify-center mb-4 border ' + (colorClasses[winIdx]||colorClasses[0]);
-
-      const scores = [];
-      for(let i=0; i<state.mode; i++) scores.push(`${state.teams[i]} ${state.scores[i]}`);
-      document.getElementById('winner-score-detail').innerText = scores.join(' — ');
-
+      document.getElementById('winner-name').innerText=state.winner;
+      const winIdx=state.teams.indexOf(state.winner);
+      const wg=document.getElementById('winner-glow');
+      const cc={0:'bg-blue-500/10 border-blue-500/20 text-blue-400',1:'bg-amber-500/10 border-amber-500/20 text-amber-400',2:'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'};
+      wg.className='w-16 h-16 rounded-full flex items-center justify-center mb-4 border '+(cc[winIdx]||cc[0]);
+      const sc=[]; for(let i=0;i<state.mode;i++) sc.push(`${state.teams[i]} ${state.scores[i]}`);
+      document.getElementById('winner-score-detail').innerText=sc.join(' — ');
       modal.classList.remove('hidden-el');
-    } else {
-      modal.classList.add('hidden-el');
-    }
-
+    } else modal.classList.add('hidden-el');
     save();
   }
 
-  // --- Core ---
-  function changeScore(team, amount, label) {
+  // Core
+  function changeScore(team,amount,label) {
     if(state.winner) return;
-    const idx = team-1;
-
-    undoStack.push({ scores:[...state.scores], manos:state.manos, winner:state.winner });
+    const idx=team-1;
+    undoStack.push({scores:[...state.scores],manos:state.manos,winner:state.winner});
     if(undoStack.length>50) undoStack.shift();
-
-    state.scores[idx] = Math.max(0, state.scores[idx]+amount);
+    state.scores[idx]=Math.max(0,state.scores[idx]+amount);
     if(amount>0) state.manos++;
-
-    const labels = {1:'',2:'Envido',3:'Truco',4:'Vale 4'};
-    addLog(idx, amount, label || labels[Math.abs(amount)] || '');
-
+    addLog(idx,amount,label||'');
     if(state.scores[idx]>=state.limit) {
-      state.scores[idx] = state.limit;
-      state.winner = state.teams[idx];
-      wins[idx]++;
-      setTimeout(launchConfetti, 100);
-      playWin();
-      haptic(80);
-    } else {
-      playTick(amount>0?800:400, 0.06);
-      haptic(12);
-    }
-
-    popScore(team);
-    updateUI();
+      state.scores[idx]=state.limit; state.winner=state.teams[idx]; wins[idx]++;
+      setTimeout(launchConfetti,100); playWin(); haptic(80);
+    } else { playTick(amount>0?800:400,0.06); haptic(12); }
+    popScore(team); updateUI();
   }
 
+  // Falta Envido: vale la cantidad de puntos que le faltan al equipo
+  // que MÁS lejos está de ganar (el que más puntos le faltan)
   function faltaEnvido(team) {
     if(state.winner) return;
-    const idx = team-1;
-    const remaining = state.limit - state.scores[idx];
-    if(remaining<=0) return;
-    changeScore(team, remaining, 'Falta Envido');
+    let maxRemaining = 0;
+    for(let i=0; i<state.mode; i++) {
+      const rem = state.limit - state.scores[i];
+      if(rem > maxRemaining) maxRemaining = rem;
+    }
+    if(maxRemaining <= 0) return;
+    changeScore(team, maxRemaining, 'Falta Envido');
   }
 
   function undoLast() {
     if(undoStack.length===0) return;
-    const prev = undoStack.pop();
-    state.scores = prev.scores;
-    state.manos = prev.manos;
-    state.winner = prev.winner;
+    const prev=undoStack.pop(); state.scores=prev.scores; state.manos=prev.manos; state.winner=prev.winner;
     if(actionLog.length>0) actionLog.pop();
-    haptic(10); playTick(300,0.05);
-    updateUI();
+    haptic(10); playTick(300,0.05); updateUI();
   }
 
   function setLimit(n) { if(state.limit===n) return; state.limit=n; undoStack=[]; actionLog=[]; resetGame(); }
   function setMode(n) { if(state.mode===n) return; state.mode=n; undoStack=[]; actionLog=[]; resetGame(); }
-
-  function resetGame() {
-    state.scores=[0,0,0]; state.winner=null; state.manos=0;
-    undoStack=[]; actionLog=[];
-    updateUI();
-  }
-
-  function confirmReset() {
-    if(state.scores.every(s=>s===0)) return;
-    document.getElementById('confirm-modal').classList.remove('hidden-el');
-  }
+  function resetGame() { state.scores=[0,0,0]; state.winner=null; state.manos=0; undoStack=[]; actionLog=[]; updateUI(); }
+  function confirmReset() { if(state.scores.every(s=>s===0)) return; document.getElementById('confirm-modal').classList.remove('hidden-el'); }
   function dismissConfirm() { document.getElementById('confirm-modal').classList.add('hidden-el'); }
 
-  // --- Team Edit ---
+  // Team edit
   function startEditing(t) {
     document.getElementById(`team${t}-display`).classList.add('hidden-el');
     document.getElementById(`team${t}-edit`).classList.remove('hidden-el');
-    const inp = document.getElementById(`team${t}-input`);
-    inp.value = state.teams[t-1]; inp.focus(); inp.select();
+    const inp=document.getElementById(`team${t}-input`); inp.value=state.teams[t-1]; inp.focus(); inp.select();
   }
   function saveTeam(t) {
-    const inp = document.getElementById(`team${t}-input`);
-    state.teams[t-1] = inp.value.trim() || DEFAULTS[t-1];
+    state.teams[t-1]=document.getElementById(`team${t}-input`).value.trim()||DEFAULTS[t-1];
     document.getElementById(`team${t}-edit`).classList.add('hidden-el');
     document.getElementById(`team${t}-display`).classList.remove('hidden-el');
     updateUI();
   }
-
-  document.addEventListener('click', (e) => {
-    [1,2,3].forEach(id => {
-      const ed = document.getElementById(`team${id}-edit`);
-      const dd = document.getElementById(`team${id}-display`);
-      if(!ed.classList.contains('hidden-el') && !ed.contains(e.target) && !dd.contains(e.target)) saveTeam(id);
+  document.addEventListener('click',(e)=>{
+    [1,2,3].forEach(id=>{
+      const ed=document.getElementById(`team${id}-edit`),dd=document.getElementById(`team${id}-display`);
+      if(!ed.classList.contains('hidden-el')&&!ed.contains(e.target)&&!dd.contains(e.target)) saveTeam(id);
     });
   });
 
-  // --- Init ---
-  load();
-  updateUI();
+  // Init
+  load(); updateUI();
 </script>
 </body>
 </html>
