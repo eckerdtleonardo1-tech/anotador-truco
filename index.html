@@ -25,7 +25,7 @@
   </script>
   <style>
     * { box-sizing: border-box; }
-    body { background: #0a0a0c; color: #f4f4f5; touch-action: manipulation; font-family: 'Inter', system-ui, sans-serif; }
+    body { background: #0a0a0c; color: #f4f4f5; touch-action: manipulation; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
     input, button { touch-action: manipulation; font-family: inherit; }
     .hidden-el { display: none !important; }
 
@@ -99,15 +99,30 @@
       border: 2px solid #0a0a0c;
     }
 
+    .mano-indicator {
+      position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+      font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; display: flex; align-items: center; gap: 4px; cursor: pointer;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1); transition: all 0.2s;
+      white-space: nowrap; z-index: 20;
+    }
+    .mano-indicator:hover { background: rgba(255,255,255,0.2); transform: translateX(-50%) scale(1.05); }
+    .mano-indicator.active { display: flex; }
+    .mano-indicator:not(.active) { display: none; }
+
     .log-entry { border-left: 2px solid #27272a; padding-left: 8px; }
     .glow-blue { box-shadow: 0 4px 20px -4px rgba(59,130,246,0.3); }
     .glow-amber { box-shadow: 0 4px 20px -4px rgba(245,158,11,0.3); }
     .glow-emerald { box-shadow: 0 4px 20px -4px rgba(16,185,129,0.3); }
+    
+    .pica-glow { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+
   </style>
 </head>
 <body class="antialiased select-none">
 
-<div class="min-h-screen bg-[#0a0a0c] text-zinc-100 flex flex-col items-center py-4 px-3 relative overflow-x-hidden surface-noise">
+<div class="min-h-screen bg-[#0a0a0c] text-zinc-100 flex flex-col items-center py-4 px-3 relative surface-noise">
 
   <!-- Header -->
   <div class="mb-4 text-center flex items-center gap-2">
@@ -116,48 +131,61 @@
   </div>
 
   <!-- Config Bar -->
-  <div class="flex flex-row items-center gap-3 sm:gap-5 mb-5 bg-zinc-900/60 px-4 py-2.5 rounded-2xl border border-zinc-800/50 shadow-lg backdrop-blur z-10 flex-wrap justify-center">
+  <div class="flex flex-row items-center gap-3 sm:gap-4 mb-3 bg-zinc-900/60 px-4 py-2.5 rounded-2xl border border-zinc-800/50 shadow-lg backdrop-blur z-10 flex-wrap justify-center max-w-[95vw]">
     <div class="flex items-center gap-2">
       <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Puntos</span>
       <div class="flex bg-zinc-800/70 rounded-lg p-0.5">
-        <button id="btn-limit-15" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500" onclick="setLimit(15)">15</button>
-        <button id="btn-limit-30" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white" onclick="setLimit(30)">30</button>
+        <button id="btn-limit-15" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-zinc-500" onclick="setLimit(15)">15</button>
+        <button id="btn-limit-30" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all bg-blue-600 text-white" onclick="setLimit(30)">30</button>
       </div>
     </div>
     <div class="w-px h-5 bg-zinc-700/40"></div>
     <div class="flex items-center gap-2">
       <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Equipos</span>
       <div class="flex bg-zinc-800/70 rounded-lg p-0.5">
-        <button id="btn-mode-2" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white" onclick="setMode(2)">2</button>
-        <button id="btn-mode-3" class="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500" onclick="setMode(3)">3</button>
+        <button id="btn-mode-2" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all bg-blue-600 text-white" onclick="setMode(2)">2</button>
+        <button id="btn-mode-3" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-zinc-500" onclick="setMode(3)">3</button>
+      </div>
+    </div>
+    <div class="w-px h-5 bg-zinc-700/40 hidden sm:block"></div>
+    
+    <!-- Row break for very small screens -->
+    <div class="w-full sm:hidden"></div>
+
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Flor 🌸</span>
+      <div class="flex bg-zinc-800/70 rounded-lg p-0.5">
+        <button id="btn-flor-off" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all bg-zinc-600 text-white" onclick="setFlor(false)">No</button>
+        <button id="btn-flor-on" class="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-zinc-500" onclick="setFlor(true)">Sí</button>
       </div>
     </div>
     <div class="w-px h-5 bg-zinc-700/40"></div>
-    <div class="flex items-center gap-2">
-      <span class="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest">Mano</span>
-      <span id="mano-count" class="text-sm font-extrabold text-zinc-300 tabular-nums bg-zinc-800/50 rounded-md px-2 py-0.5">0</span>
-    </div>
-    <div class="w-px h-5 bg-zinc-700/40"></div>
-    <button onclick="toggleSound()" class="flex items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors" title="Sonido">
-      <svg id="sound-icon-on" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-      <svg id="sound-icon-off" class="hidden-el" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+    <button onclick="toggleSound()" class="flex items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors p-1" title="Sonido">
+      <svg id="sound-icon-on" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+      <svg id="sound-icon-off" class="hidden-el" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
     </button>
   </div>
 
-  <!-- Main Board -->
-  <div id="main-board" class="flex w-full max-w-lg bg-gradient-to-b from-zinc-900/70 to-zinc-900/40 rounded-3xl p-4 sm:p-6 shadow-2xl border border-zinc-800/30 relative z-10 backdrop-blur-md transition-all duration-300 surface-noise">
+  <!-- Pica Pica Banner -->
+  <div id="pica-pica-banner" class="hidden-el mb-3 px-5 py-2 bg-purple-900/40 border border-purple-500/40 rounded-xl text-purple-300 font-black text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center gap-2 pica-glow">
+    ⚔️ Zona de Pica-Pica ⚔️
+  </div>
 
-    <!-- === COLUMN TEMPLATE (repeated for 1, 2, 3) === -->
+  <!-- Main Board -->
+  <div id="main-board" class="flex w-full max-w-lg bg-gradient-to-b from-zinc-900/70 to-zinc-900/40 rounded-3xl p-4 sm:p-6 shadow-2xl border border-zinc-800/30 relative z-10 backdrop-blur-md transition-all duration-300 surface-noise mt-3">
+
+    <!-- === COLUMN TEMPLATE === -->
 
     <!-- Column 1 (Blue) -->
-    <div id="column-1" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-blue">
-      <div class="relative">
+    <div id="column-1" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-blue relative">
+      <div id="mano-indicator-1" class="mano-indicator" onclick="nextMano()" title="Hacer clic para pasar la mano">✋ MANO</div>
+      <div class="relative mt-2">
         <div id="team1-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(1)">
           <h2 id="team1-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-blue-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-blue-200 transition-colors">Nosotros</h2>
         </div>
         <span id="wins-1" class="wins-badge bg-blue-600 text-white hidden-el">0</span>
       </div>
-      <div id="team1-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+      <div id="team1-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px] mt-2">
         <input id="team1-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(1)">
       </div>
 
@@ -177,41 +205,45 @@
       <!-- Buttons -->
       <div class="flex flex-col gap-2 w-full mt-5 sm:mt-6">
         <!-- +1 / -1 -->
-        <div class="flex gap-2">
-          <button id="btn-minus-1" onclick="changeScore(1,-1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
+        <div class="flex gap-2 mb-1">
+          <button id="btn-minus-1" onclick="changeScore(1,-1)" class="main-btn flex-1 flex justify-center items-center py-3 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
-          <button onclick="changeScore(1,1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white glow-blue transition-all active:scale-95 border border-blue-400/20">
+          <button onclick="changeScore(1,1)" class="main-btn flex-1 flex justify-center items-center py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white glow-blue transition-all active:scale-95 border border-blue-400/20">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
         </div>
-        <!-- Envido / Real Envido -->
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(1,2,'Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
-          <button onclick="changeScore(1,3,'R. Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">R. Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
-        </div>
-        <!-- Truco / Retruco -->
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(1,2,'Truco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/15 leading-tight">Truco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
-          <button onclick="changeScore(1,3,'Retruco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/15 leading-tight">Retruco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
-        </div>
-        <!-- Vale 4 / Falta Envido -->
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(1,4,'Vale 4')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/20 hover:bg-blue-900/25 rounded-lg text-blue-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/10 leading-tight">Vale 4<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
-          <button onclick="faltaEnvido(1)" class="quick-btn flex-1 py-2 sm:py-2.5 bg-blue-950/20 hover:bg-blue-900/25 rounded-lg text-blue-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/10 leading-tight">Falta E.<br><span class="q-sub text-[11px] sm:text-xs opacity-60">→máx</span></button>
+        
+        <!-- Grid Quick Actions -->
+        <div class="grid grid-cols-2 gap-1.5 w-full">
+          <button onclick="changeScore(1,2,'Envido')" class="quick-btn py-2 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
+          <button onclick="changeScore(1,4,'Env. Envido')" class="quick-btn py-2 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">Env. Env<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
+          
+          <button onclick="changeScore(1,3,'R. Envido')" class="quick-btn py-2 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">R. Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          <button onclick="faltaEnvido(1)" class="quick-btn py-2 bg-blue-950/40 hover:bg-blue-900/40 rounded-lg text-blue-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/20 leading-tight">Falta E.<br><span class="q-sub text-[11px] sm:text-xs opacity-60">→máx</span></button>
+
+          <button onclick="changeScore(1,2,'Truco')" class="quick-btn py-2 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/15 leading-tight mt-1">Truco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
+          <button onclick="changeScore(1,3,'Retruco')" class="quick-btn py-2 bg-blue-950/30 hover:bg-blue-900/30 rounded-lg text-blue-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/15 leading-tight mt-1">Retruco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          
+          <button onclick="changeScore(1,4,'Vale 4')" class="quick-btn py-2 col-span-2 bg-blue-950/20 hover:bg-blue-900/25 rounded-lg text-blue-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-blue-800/10 leading-tight">Vale 4<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
+
+          <!-- Flor Buttons (hidden by default) -->
+          <button onclick="changeScore(1,3,'Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          <button onclick="changeScore(1,6,'C. Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">C. Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+6</span></button>
         </div>
       </div>
     </div>
 
     <!-- Column 2 (Amber) -->
-    <div id="column-2" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-amber">
-      <div class="relative">
+    <div id="column-2" class="flex-1 flex flex-col items-center px-2 sm:px-4 col-divider team-amber relative">
+      <div id="mano-indicator-2" class="mano-indicator" onclick="nextMano()" title="Hacer clic para pasar la mano">✋ MANO</div>
+      <div class="relative mt-2">
         <div id="team2-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(2)">
           <h2 id="team2-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-amber-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-amber-200 transition-colors">Ellos</h2>
         </div>
         <span id="wins-2" class="wins-badge bg-amber-600 text-white hidden-el">0</span>
       </div>
-      <div id="team2-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+      <div id="team2-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px] mt-2">
         <input id="team2-input" type="text" class="bg-zinc-800 text-zinc-100 border border-amber-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(2)">
       </div>
 
@@ -229,38 +261,43 @@
       </div>
 
       <div class="flex flex-col gap-2 w-full mt-5 sm:mt-6">
-        <div class="flex gap-2">
-          <button id="btn-minus-2" onclick="changeScore(2,-1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
+        <div class="flex gap-2 mb-1">
+          <button id="btn-minus-2" onclick="changeScore(2,-1)" class="main-btn flex-1 flex justify-center items-center py-3 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
-          <button onclick="changeScore(2,1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-white glow-amber transition-all active:scale-95 border border-amber-400/20">
+          <button onclick="changeScore(2,1)" class="main-btn flex-1 flex justify-center items-center py-3 bg-amber-600 hover:bg-amber-500 rounded-xl text-white glow-amber transition-all active:scale-95 border border-amber-400/20">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
         </div>
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(2,2,'Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/20 leading-tight">Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
-          <button onclick="changeScore(2,3,'R. Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/20 leading-tight">R. Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
-        </div>
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(2,2,'Truco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/15 leading-tight">Truco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
-          <button onclick="changeScore(2,3,'Retruco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/15 leading-tight">Retruco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
-        </div>
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(2,4,'Vale 4')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/20 hover:bg-amber-900/25 rounded-lg text-amber-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/10 leading-tight">Vale 4<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
-          <button onclick="faltaEnvido(2)" class="quick-btn flex-1 py-2 sm:py-2.5 bg-amber-950/20 hover:bg-amber-900/25 rounded-lg text-amber-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/10 leading-tight">Falta E.<br><span class="q-sub text-[11px] sm:text-xs opacity-60">→máx</span></button>
+        
+        <div class="grid grid-cols-2 gap-1.5 w-full">
+          <button onclick="changeScore(2,2,'Envido')" class="quick-btn py-2 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/20 leading-tight">Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
+          <button onclick="changeScore(2,4,'Env. Envido')" class="quick-btn py-2 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/20 leading-tight">Env. Env<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
+          
+          <button onclick="changeScore(2,3,'R. Envido')" class="quick-btn py-2 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/20 leading-tight">R. Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          <button onclick="faltaEnvido(2)" class="quick-btn py-2 bg-amber-950/40 hover:bg-amber-900/40 rounded-lg text-amber-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/20 leading-tight">Falta E.<br><span class="q-sub text-[11px] sm:text-xs opacity-60">→máx</span></button>
+
+          <button onclick="changeScore(2,2,'Truco')" class="quick-btn py-2 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/15 leading-tight mt-1">Truco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
+          <button onclick="changeScore(2,3,'Retruco')" class="quick-btn py-2 bg-amber-950/30 hover:bg-amber-900/30 rounded-lg text-amber-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/15 leading-tight mt-1">Retruco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          
+          <button onclick="changeScore(2,4,'Vale 4')" class="quick-btn py-2 col-span-2 bg-amber-950/20 hover:bg-amber-900/25 rounded-lg text-amber-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-amber-800/10 leading-tight">Vale 4<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
+
+          <button onclick="changeScore(2,3,'Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          <button onclick="changeScore(2,6,'C. Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">C. Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+6</span></button>
         </div>
       </div>
     </div>
 
     <!-- Column 3 (Emerald) -->
-    <div id="column-3" class="flex-1 flex flex-col items-center px-2 sm:px-4 hidden-el col-divider team-emerald">
-      <div class="relative">
+    <div id="column-3" class="flex-1 flex flex-col items-center px-2 sm:px-4 hidden-el col-divider team-emerald relative">
+      <div id="mano-indicator-3" class="mano-indicator" onclick="nextMano()" title="Hacer clic para pasar la mano">✋ MANO</div>
+      <div class="relative mt-2">
         <div id="team3-display" class="flex items-center justify-center cursor-pointer h-[28px] group" onclick="startEditing(3)">
           <h2 id="team3-name" class="team-label text-sm sm:text-lg font-extrabold tracking-wide text-emerald-300 truncate max-w-[90px] sm:max-w-[130px] group-hover:text-emerald-200 transition-colors">Los Otros</h2>
         </div>
         <span id="wins-3" class="wins-badge bg-emerald-600 text-white hidden-el">0</span>
       </div>
-      <div id="team3-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px]">
+      <div id="team3-edit" class="hidden-el flex items-center gap-1 justify-center h-[28px] mt-2">
         <input id="team3-input" type="text" class="bg-zinc-800 text-zinc-100 border border-emerald-500/40 rounded-lg px-2 py-0.5 w-20 sm:w-24 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(3)">
       </div>
 
@@ -278,25 +315,29 @@
       </div>
 
       <div class="flex flex-col gap-2 w-full mt-5 sm:mt-6">
-        <div class="flex gap-2">
-          <button id="btn-minus-3" onclick="changeScore(3,-1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
+        <div class="flex gap-2 mb-1">
+          <button id="btn-minus-3" onclick="changeScore(3,-1)" class="main-btn flex-1 flex justify-center items-center py-3 bg-zinc-800/60 hover:bg-zinc-700/70 rounded-xl text-zinc-500 hover:text-white transition-all active:scale-95 disabled:opacity-20 border border-zinc-700/30">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
-          <button onclick="changeScore(3,1)" class="main-btn flex-1 flex justify-center items-center py-3 sm:py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white glow-emerald transition-all active:scale-95 border border-emerald-400/20">
+          <button onclick="changeScore(3,1)" class="main-btn flex-1 flex justify-center items-center py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white glow-emerald transition-all active:scale-95 border border-emerald-400/20">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
         </div>
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(3,2,'Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/20 leading-tight">Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
-          <button onclick="changeScore(3,3,'R. Envido')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/20 leading-tight">R. Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
-        </div>
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(3,2,'Truco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/15 leading-tight">Truco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
-          <button onclick="changeScore(3,3,'Retruco')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/15 leading-tight">Retruco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
-        </div>
-        <div class="flex gap-1.5">
-          <button onclick="changeScore(3,4,'Vale 4')" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/20 hover:bg-emerald-900/25 rounded-lg text-emerald-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/10 leading-tight">Vale 4<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
-          <button onclick="faltaEnvido(3)" class="quick-btn flex-1 py-2 sm:py-2.5 bg-emerald-950/20 hover:bg-emerald-900/25 rounded-lg text-emerald-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/10 leading-tight">Falta E.<br><span class="q-sub text-[11px] sm:text-xs opacity-60">→máx</span></button>
+        
+        <div class="grid grid-cols-2 gap-1.5 w-full">
+          <button onclick="changeScore(3,2,'Envido')" class="quick-btn py-2 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/20 leading-tight">Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
+          <button onclick="changeScore(3,4,'Env. Envido')" class="quick-btn py-2 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/20 leading-tight">Env. Env<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
+          
+          <button onclick="changeScore(3,3,'R. Envido')" class="quick-btn py-2 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/20 leading-tight">R. Envido<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          <button onclick="faltaEnvido(3)" class="quick-btn py-2 bg-emerald-950/40 hover:bg-emerald-900/40 rounded-lg text-emerald-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/20 leading-tight">Falta E.<br><span class="q-sub text-[11px] sm:text-xs opacity-60">→máx</span></button>
+
+          <button onclick="changeScore(3,2,'Truco')" class="quick-btn py-2 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/15 leading-tight mt-1">Truco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+2</span></button>
+          <button onclick="changeScore(3,3,'Retruco')" class="quick-btn py-2 bg-emerald-950/30 hover:bg-emerald-900/30 rounded-lg text-emerald-300/70 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/15 leading-tight mt-1">Retruco<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          
+          <button onclick="changeScore(3,4,'Vale 4')" class="quick-btn py-2 col-span-2 bg-emerald-950/20 hover:bg-emerald-900/25 rounded-lg text-emerald-300/60 font-bold text-sm sm:text-base transition-all active:scale-95 border border-emerald-800/10 leading-tight">Vale 4<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+4</span></button>
+
+          <button onclick="changeScore(3,3,'Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+3</span></button>
+          <button onclick="changeScore(3,6,'C. Flor')" class="flor-el hidden-el quick-btn py-2 bg-pink-950/30 hover:bg-pink-900/40 rounded-lg text-pink-300/90 font-bold text-sm sm:text-base transition-all active:scale-95 border border-pink-800/30 leading-tight mt-1">C. Flor<br><span class="q-sub text-[11px] sm:text-xs opacity-60">+6</span></button>
         </div>
       </div>
     </div>
@@ -304,24 +345,31 @@
   </div>
 
   <!-- Bottom Actions -->
-  <div class="mt-5 flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
+  <div class="mt-6 flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center mb-8">
+    <div class="flex items-center gap-2 bg-zinc-900/80 px-4 py-2 rounded-full border border-zinc-800/50">
+      <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest mr-1">Manos jugadas:</span>
+      <span id="mano-count" class="text-sm font-extrabold text-white tabular-nums bg-zinc-800/80 rounded-md px-2 py-0.5">0</span>
+    </div>
+    
+    <div class="w-full sm:hidden"></div>
+
     <button id="btn-undo" onclick="undoLast()" disabled class="flex items-center gap-1 text-zinc-600 disabled:opacity-25 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
       Deshacer
     </button>
-    <div class="w-px h-3.5 bg-zinc-800"></div>
+    <div class="w-px h-4 bg-zinc-800"></div>
     <button onclick="toggleHistory()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
       Historial
     </button>
-    <div class="w-px h-3.5 bg-zinc-800"></div>
+    <div class="w-px h-4 bg-zinc-800"></div>
     <button onclick="shareScore()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
       Compartir
     </button>
-    <div class="w-px h-3.5 bg-zinc-800"></div>
+    <div class="w-px h-4 bg-zinc-800"></div>
     <button onclick="confirmReset()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
-      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
       Reiniciar
     </button>
   </div>
@@ -331,7 +379,7 @@
     <div class="flex items-center justify-between mb-2">
       <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Últimas jugadas</span>
       <button onclick="toggleHistory()" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
     <div id="history-log" class="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto text-xs"></div>
@@ -339,7 +387,7 @@
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="hidden-el fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-800 text-zinc-200 text-xs font-semibold px-4 py-2 rounded-full border border-zinc-700/50 shadow-lg z-50"></div>
+  <div id="toast" class="hidden-el fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-800 text-zinc-200 text-xs font-semibold px-4 py-3 rounded-full border border-zinc-700/50 shadow-lg z-50"></div>
 
   <!-- Winner Modal -->
   <div id="winner-modal" class="hidden-el fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -374,10 +422,10 @@
 <script>
   const DEFAULTS = ["Nosotros", "Ellos", "Los Otros"];
   const COLORS = ["blue", "amber", "emerald"];
-  const SK = "truco_v4";
-  const WK = "truco_wins_v4";
+  const SK = "truco_v5";
+  const WK = "truco_wins_v5";
 
-  let state = { mode:2, teams:[...DEFAULTS], scores:[0,0,0], limit:30, winner:null, manos:0 };
+  let state = { mode:2, teams:[...DEFAULTS], scores:[0,0,0], limit:30, winner:null, manos:0, florEnabled:false, manoIdx:0 };
   let wins = [0,0,0];
   let undoStack = [];
   let actionLog = [];
@@ -390,6 +438,8 @@
     try {
       const s=localStorage.getItem(SK); if(s){const p=JSON.parse(s); if(p&&p.scores) Object.assign(state,p);}
       const w=localStorage.getItem(WK); if(w){const p=JSON.parse(w); if(Array.isArray(p)) wins=p;}
+      if(state.manoIdx === undefined) state.manoIdx = 0;
+      if(state.florEnabled === undefined) state.florEnabled = false;
     } catch(e){}
   }
 
@@ -422,17 +472,11 @@
     for(let i=0;i<70;i++) { const p=document.createElement('div'); p.className='confetti-piece'; p.style.left=Math.random()*100+'vw'; p.style.background=cols[Math.floor(Math.random()*cols.length)]; p.style.animationDuration=(Math.random()*2+1.5)+'s'; p.style.animationDelay=(Math.random()*0.6)+'s'; p.style.width=(Math.random()*6+4)+'px'; p.style.height=(Math.random()*6+4)+'px'; p.style.borderRadius=Math.random()>0.5?'50%':'2px'; document.body.appendChild(p); setTimeout(()=>p.remove(),4500); }
   }
 
-  // Score pop
   function popScore(t) { const el=document.getElementById(`score${t}-text`); if(!el) return; el.classList.remove('score-pop'); void el.offsetWidth; el.classList.add('score-pop'); }
-
-  // Toggle helpers
-  function setToggle(on,off) { document.getElementById(on).className="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all bg-blue-600 text-white"; document.getElementById(off).className="tog-btn px-3 py-1 rounded-md text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300"; }
-
-  // Phase
+  function setToggle(on,off, onClass) { document.getElementById(on).className=`tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-white ${onClass||'bg-blue-600'}`; document.getElementById(off).className="tog-btn px-2 sm:px-3 py-1 rounded-md text-[11px] sm:text-xs font-bold transition-all text-zinc-500 hover:text-zinc-300"; }
   function getPhase(s) { return state.limit===15?"Puntos":(s<15?"Malas":"Buenas"); }
   function getPhaseScore(s) { return state.limit===15?s:(s<=15?s:s-15); }
 
-  // History
   function addLog(idx,amount,label) {
     actionLog.push({ team:state.teams[idx], color:COLORS[idx], amount, label:label||'', time:new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) });
     if(actionLog.length>30) actionLog.shift();
@@ -445,17 +489,20 @@
     c.innerHTML=actionLog.slice().reverse().map(x=>`<div class="log-entry py-1 flex items-center justify-between"><span><span class="${cm[x.color]} font-bold">${x.team}</span> <span class="text-zinc-500">${x.label} <span class="font-bold text-zinc-300">${x.amount>0?'+'+x.amount:x.amount}</span></span></span><span class="text-zinc-600 text-[10px]">${x.time}</span></div>`).join('');
   }
   function toggleHistory() { const p=document.getElementById('history-panel'); p.classList.toggle('hidden-el'); if(!p.classList.contains('hidden-el')) renderHistory(); }
-
-  // Toast
   function showToast(msg) { const t=document.getElementById('toast'); t.innerText=msg; t.classList.remove('hidden-el'); setTimeout(()=>t.classList.add('hidden-el'),2000); }
 
-  // Share
   function shareScore() {
     let text=`🃏 Truco — Mano ${state.manos}\n`;
     for(let i=0;i<state.mode;i++) text+=`${state.teams[i]}: ${state.scores[i]} pts\n`;
     if(state.winner) text+=`🏆 ¡Ganó ${state.winner}!`;
     if(navigator.share) navigator.share({title:'Anotador de Truco',text}).catch(()=>{});
     else navigator.clipboard.writeText(text).then(()=>showToast('📋 Puntaje copiado')).catch(()=>{});
+  }
+
+  function nextMano() {
+    state.manoIdx = (state.manoIdx + 1) % state.mode;
+    haptic(10);
+    updateUI();
   }
 
   // UI
@@ -467,8 +514,28 @@
     } else {
       board.classList.remove('max-w-3xl','mode-3'); board.classList.add('max-w-lg');
       col3.classList.add('hidden-el'); setToggle('btn-mode-2','btn-mode-3');
+      if(state.manoIdx > 1) state.manoIdx = 0;
     }
+    
     if(state.limit===15) setToggle('btn-limit-15','btn-limit-30'); else setToggle('btn-limit-30','btn-limit-15');
+    if(state.florEnabled) setToggle('btn-flor-on','btn-flor-off', 'bg-pink-600'); else setToggle('btn-flor-off','btn-flor-on', 'bg-zinc-600');
+
+    // Flor visibility
+    document.querySelectorAll('.flor-el').forEach(el => el.classList.toggle('hidden-el', !state.florEnabled));
+
+    // Pica pica logic
+    const banner = document.getElementById('pica-pica-banner');
+    if(state.mode === 2 && state.limit === 30 && state.scores[0] >= 5 && state.scores[1] >= 5 && state.scores[0] < 25 && state.scores[1] < 25) {
+      banner.classList.remove('hidden-el');
+    } else {
+      banner.classList.add('hidden-el');
+    }
+
+    // Mano indicators
+    for(let i=1; i<=3; i++) {
+      const mind = document.getElementById(`mano-indicator-${i}`);
+      if(mind) mind.classList.toggle('active', state.manoIdx === i-1);
+    }
 
     for(let i=0;i<3;i++) {
       const t=i+1;
@@ -481,6 +548,7 @@
       const wb=document.getElementById(`wins-${t}`);
       if(wins[i]>0){wb.classList.remove('hidden-el');wb.innerText=wins[i];} else wb.classList.add('hidden-el');
     }
+    
     document.getElementById('mano-count').innerText=state.manos;
     document.getElementById('btn-undo').disabled=undoStack.length===0;
 
@@ -502,10 +570,18 @@
   function changeScore(team,amount,label) {
     if(state.winner) return;
     const idx=team-1;
-    undoStack.push({scores:[...state.scores],manos:state.manos,winner:state.winner});
+    undoStack.push({scores:[...state.scores],manos:state.manos,winner:state.winner,manoIdx:state.manoIdx});
     if(undoStack.length>50) undoStack.shift();
+    
     state.scores[idx]=Math.max(0,state.scores[idx]+amount);
-    if(amount>0) state.manos++;
+    
+    if(amount>0) {
+      // Auto-advance hand when points are scored? 
+      // People often score multiple things at once (e.g. Envido then Truco).
+      // We will only increment the total manos count when points are added, but leave the 'Mano' indicator manual.
+      state.manos++;
+    }
+    
     addLog(idx,amount,label||'');
     if(state.scores[idx]>=state.limit) {
       state.scores[idx]=state.limit; state.winner=state.teams[idx]; wins[idx]++;
@@ -514,40 +590,41 @@
     popScore(team); updateUI();
   }
 
-  // Falta Envido: 
-  // - A 30 puntos: si están en "malas" (<15), se gana el partido. Si alguno está en "buenas" (>=15), vale lo que le falta al puntero.
-  // - A 15 puntos: no hay "malas", vale lo que le falta al puntero.
   function faltaEnvido(team) {
     if(state.winner) return;
     const limit = state.limit;
     const half = limit === 15 ? 0 : limit / 2;
-    
     let maxScore = 0;
     for(let i=0; i<state.mode; i++) {
       if(state.scores[i] > maxScore) maxScore = state.scores[i];
     }
-    
     let pointsToAdd = 0;
     if(maxScore < half) {
       pointsToAdd = limit; // Gana el partido directamente
     } else {
       pointsToAdd = limit - maxScore; // Lo que le falta al que va ganando
     }
-    
     if(pointsToAdd <= 0) return;
     changeScore(team, pointsToAdd, 'Falta Envido');
   }
 
   function undoLast() {
     if(undoStack.length===0) return;
-    const prev=undoStack.pop(); state.scores=prev.scores; state.manos=prev.manos; state.winner=prev.winner;
+    const prev=undoStack.pop(); 
+    state.scores=prev.scores; state.manos=prev.manos; state.winner=prev.winner;
+    if(prev.manoIdx !== undefined) state.manoIdx = prev.manoIdx;
     if(actionLog.length>0) actionLog.pop();
     haptic(10); playTick(300,0.05); updateUI();
   }
 
   function setLimit(n) { if(state.limit===n) return; state.limit=n; undoStack=[]; actionLog=[]; resetGame(); }
   function setMode(n) { if(state.mode===n) return; state.mode=n; undoStack=[]; actionLog=[]; resetGame(); }
-  function resetGame() { state.scores=[0,0,0]; state.winner=null; state.manos=0; undoStack=[]; actionLog=[]; updateUI(); }
+  function setFlor(v) { state.florEnabled=v; haptic(10); updateUI(); }
+  
+  function resetGame() { 
+    state.scores=[0,0,0]; state.winner=null; state.manos=0; state.manoIdx=0; 
+    undoStack=[]; actionLog=[]; updateUI(); 
+  }
   function confirmReset() { if(state.scores.every(s=>s===0)) return; document.getElementById('confirm-modal').classList.remove('hidden-el'); }
   function dismissConfirm() { document.getElementById('confirm-modal').classList.add('hidden-el'); }
 
