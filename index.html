@@ -514,17 +514,28 @@
     popScore(team); updateUI();
   }
 
-  // Falta Envido: vale la cantidad de puntos que le faltan al equipo
-  // que MÁS lejos está de ganar (el que más puntos le faltan)
+  // Falta Envido: 
+  // - A 30 puntos: si están en "malas" (<15), se gana el partido. Si alguno está en "buenas" (>=15), vale lo que le falta al puntero.
+  // - A 15 puntos: no hay "malas", vale lo que le falta al puntero.
   function faltaEnvido(team) {
     if(state.winner) return;
-    let maxRemaining = 0;
+    const limit = state.limit;
+    const half = limit === 15 ? 0 : limit / 2;
+    
+    let maxScore = 0;
     for(let i=0; i<state.mode; i++) {
-      const rem = state.limit - state.scores[i];
-      if(rem > maxRemaining) maxRemaining = rem;
+      if(state.scores[i] > maxScore) maxScore = state.scores[i];
     }
-    if(maxRemaining <= 0) return;
-    changeScore(team, maxRemaining, 'Falta Envido');
+    
+    let pointsToAdd = 0;
+    if(maxScore < half) {
+      pointsToAdd = limit; // Gana el partido directamente
+    } else {
+      pointsToAdd = limit - maxScore; // Lo que le falta al que va ganando
+    }
+    
+    if(pointsToAdd <= 0) return;
+    changeScore(team, pointsToAdd, 'Falta Envido');
   }
 
   function undoLast() {
