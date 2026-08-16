@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Anotador de Truco</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { background: '#09090b' } } }
+    }
+  </script>
+  <style>
+    body { background-color: #09090b; color: #f4f4f5; touch-action: manipulation; }
+    input, button { touch-action: manipulation; }
+    .hidden-el { display: none !important; }
+  </style>
+</head>
+<body class="antialiased select-none">
+
+  <div class="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col items-center justify-center py-4 px-4 font-sans relative overflow-hidden">
+    
+    <!-- Barra Superior Configuración -->
+    <div class="flex items-center gap-4 mb-6 bg-zinc-900/80 px-5 py-2 rounded-2xl border border-zinc-800 shadow-xl backdrop-blur-sm z-10">
+      <span class="text-xs sm:text-sm font-medium text-zinc-400 uppercase tracking-wider">A jugar a:</span>
+      <div class="flex bg-zinc-800/80 rounded-lg p-1">
+        <button id="btn-limit-15" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700" onclick="setLimit(15)">15</button>
+        <button id="btn-limit-30" class="px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md" onclick="setLimit(30)">30</button>
+      </div>
+    </div>
+
+    <!-- Tablero Principal -->
+    <div class="flex w-full max-w-md bg-zinc-900/60 rounded-[2rem] p-4 sm:p-6 shadow-2xl border border-zinc-800/50 relative z-10 backdrop-blur-md">
+      
+      <div class="absolute left-1/2 top-8 bottom-8 w-[2px] bg-gradient-to-b from-zinc-800/0 via-zinc-800 to-zinc-800/0 -translate-x-1/2 rounded-full hidden sm:block"></div>
+      <div class="absolute left-1/2 top-8 bottom-8 w-[1px] bg-zinc-800 -translate-x-1/2 rounded-full sm:hidden"></div>
+
+      <!-- Equipo 1 -->
+      <div class="flex-1 flex flex-col items-center pr-2 sm:pr-4">
+        
+        <div id="team1-display" class="flex items-center gap-2 justify-center group cursor-pointer h-[32px]" onclick="startEditing(1)" title="Editar nombre">
+          <h2 id="team1-name" class="text-xl font-bold tracking-wide text-zinc-100 truncate max-w-[100px] sm:max-w-[120px]">Nosotros</h2>
+          <svg class="text-zinc-600 group-hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100 hidden sm:block" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+        </div>
+
+        <div id="team1-edit" class="hidden-el flex items-center gap-2 justify-center h-[32px]">
+          <input id="team1-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/50 rounded px-2 py-1 w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(1)">
+          <button onclick="saveTeam(1)" class="text-blue-400 hover:text-blue-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+        
+        <div class="mt-6 sm:mt-8 mb-2 relative flex flex-col items-center">
+           <div id="score1-text" class="text-[4rem] sm:text-[5rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-400 tracking-tighter tabular-nums drop-shadow-sm h-[4rem] sm:h-[5rem] flex items-center justify-center">0</div>
+           <span id="phase1-text" class="text-[10px] sm:text-xs font-medium text-blue-500/80 uppercase tracking-[0.2em] mt-2 sm:mt-4 h-4">Malas</span>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:gap-3 w-full mt-6 sm:mt-8">
+          <div class="flex gap-2">
+            <button id="btn-minus-1" onclick="changeScore(1, -1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-zinc-800/80 hover:bg-zinc-700 rounded-xl sm:rounded-2xl text-zinc-400 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:hover:bg-zinc-800 border border-zinc-700/50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button onclick="changeScore(1, 1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 rounded-xl sm:rounded-2xl text-white shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 border border-blue-400/20">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="changeScore(1, 2)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50 hover:border-blue-500/30">+2</button>
+            <button onclick="changeScore(1, 3)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50 hover:border-blue-500/30">+3</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equipo 2 -->
+      <div class="flex-1 flex flex-col items-center pl-2 sm:pl-4">
+        
+        <div id="team2-display" class="flex items-center gap-2 justify-center group cursor-pointer h-[32px]" onclick="startEditing(2)" title="Editar nombre">
+          <h2 id="team2-name" class="text-xl font-bold tracking-wide text-zinc-100 truncate max-w-[100px] sm:max-w-[120px]">Ellos</h2>
+          <svg class="text-zinc-600 group-hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100 hidden sm:block" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+        </div>
+
+        <div id="team2-edit" class="hidden-el flex items-center gap-2 justify-center h-[32px]">
+          <input id="team2-input" type="text" class="bg-zinc-800 text-zinc-100 border border-blue-500/50 rounded px-2 py-1 w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold" maxlength="12" onkeydown="if(event.key==='Enter') saveTeam(2)">
+          <button onclick="saveTeam(2)" class="text-blue-400 hover:text-blue-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+        
+        <div class="mt-6 sm:mt-8 mb-2 relative flex flex-col items-center">
+           <div id="score2-text" class="text-[4rem] sm:text-[5rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-400 tracking-tighter tabular-nums drop-shadow-sm h-[4rem] sm:h-[5rem] flex items-center justify-center">0</div>
+           <span id="phase2-text" class="text-[10px] sm:text-xs font-medium text-blue-500/80 uppercase tracking-[0.2em] mt-2 sm:mt-4 h-4">Malas</span>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:gap-3 w-full mt-6 sm:mt-8">
+          <div class="flex gap-2">
+            <button id="btn-minus-2" onclick="changeScore(2, -1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-zinc-800/80 hover:bg-zinc-700 rounded-xl sm:rounded-2xl text-zinc-400 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 disabled:hover:bg-zinc-800 border border-zinc-700/50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button onclick="changeScore(2, 1)" class="flex-1 flex justify-center items-center py-3 sm:py-4 bg-blue-600 hover:bg-blue-500 rounded-xl sm:rounded-2xl text-white shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 border border-blue-400/20">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="changeScore(2, 2)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50 hover:border-blue-500/30">+2</button>
+            <button onclick="changeScore(2, 3)" class="flex-1 py-2 sm:py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg sm:rounded-xl text-blue-400 font-bold text-sm sm:text-lg transition-all active:scale-95 border border-zinc-700/50 hover:border-blue-500/30">+3</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Reiniciar Button -->
+    <button onclick="resetGame()" class="mt-8 flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors py-2 px-4 rounded-full hover:bg-zinc-900/50">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+      <span class="text-sm font-medium">Reiniciar Partida</span>
+    </button>
+
+    <!-- Modal Ganador -->
+    <div id="winner-modal" class="hidden-el fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-8 max-w-[320px] sm:max-w-sm w-full shadow-2xl flex flex-col items-center">
+        <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 border border-blue-500/20">
+          <svg class="text-blue-500 drop-shadow-[0_0_15px_rgba(37,99,235,0.5)]" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+        </div>
+        <h2 class="text-3xl font-black text-white mb-2 text-center">¡Ganaron!</h2>
+        <p id="winner-name" class="text-xl text-blue-400 font-bold mb-8 text-center bg-blue-500/10 px-6 py-2 rounded-full border border-blue-500/20"></p>
+        <button onclick="resetGame()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-white font-bold text-lg shadow-[0_0_20px_-5px_rgba(37,99,235,0.4)] transition-all active:scale-95 flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+          Jugar de nuevo
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const TEAM_1_DEFAULT = "Nosotros";
+    const TEAM_2_DEFAULT = "Ellos";
+
+    let state = {
+      team1: TEAM_1_DEFAULT,
+      team2: TEAM_2_DEFAULT,
+      score1: 0,
+      score2: 0,
+      limit: 30,
+      winner: null
+    };
+
+    function updateUI() {
+      // Puntos fase actual
+      let s1 = state.limit === 15 ? state.score1 : (state.score1 <= 15 ? state.score1 : state.score1 - 15);
+      let s2 = state.limit === 15 ? state.score2 : (state.score2 <= 15 ? state.score2 : state.score2 - 15);
+      
+      document.getElementById('score1-text').innerText = s1;
+      document.getElementById('score2-text').innerText = s2;
+
+      // Fase de Puntos
+      if (state.limit === 15) {
+        document.getElementById('phase1-text').innerText = "Puntos";
+        document.getElementById('phase2-text').innerText = "Puntos";
+      } else {
+        document.getElementById('phase1-text').innerText = state.score1 < 15 ? "Malas" : "Buenas";
+        document.getElementById('phase2-text').innerText = state.score2 < 15 ? "Malas" : "Buenas";
+      }
+
+      // Nombres de equipos
+      document.getElementById('team1-name').innerText = state.team1;
+      document.getElementById('team2-name').innerText = state.team2;
+
+      // Botones Restar (deshabilitar si en 0)
+      document.getElementById('btn-minus-1').disabled = state.score1 === 0;
+      document.getElementById('btn-minus-2').disabled = state.score2 === 0;
+
+      // Botones Limite
+      const btn15 = document.getElementById('btn-limit-15');
+      const btn30 = document.getElementById('btn-limit-30');
+      
+      if (state.limit === 15) {
+        btn15.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md";
+        btn30.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700";
+      } else {
+        btn30.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all bg-blue-600 text-white shadow-md";
+        btn15.className = "px-4 py-1.5 rounded-md text-sm font-bold transition-all text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700";
+      }
+
+      // Modal ganador
+      const modal = document.getElementById('winner-modal');
+      if (state.winner) {
+        document.getElementById('winner-name').innerText = state.winner;
+        modal.classList.remove('hidden-el');
+      } else {
+        modal.classList.add('hidden-el');
+      }
+    }
+
+    function changeScore(team, amount) {
+      if (state.winner) return;
+
+      if (team === 1) {
+        state.score1 = Math.max(0, state.score1 + amount);
+        if (state.score1 >= state.limit) {
+          state.score1 = state.limit;
+          state.winner = state.team1;
+        }
+      } else {
+        state.score2 = Math.max(0, state.score2 + amount);
+        if (state.score2 >= state.limit) {
+          state.score2 = state.limit;
+          state.winner = state.team2;
+        }
+      }
+      updateUI();
+    }
+
+    function setLimit(newLimit) {
+      state.limit = newLimit;
+      resetGame();
+    }
+
+    function resetGame() {
+      state.score1 = 0;
+      state.score2 = 0;
+      state.winner = null;
+      updateUI();
+    }
+
+    function startEditing(teamId) {
+      document.getElementById(`team${teamId}-display`).classList.add('hidden-el');
+      const editDiv = document.getElementById(`team${teamId}-edit`);
+      editDiv.classList.remove('hidden-el');
+      
+      const input = document.getElementById(`team${teamId}-input`);
+      input.value = teamId === 1 ? state.team1 : state.team2;
+      input.focus();
+    }
+
+    function saveTeam(teamId) {
+      const input = document.getElementById(`team${teamId}-input`);
+      const newName = input.value.trim();
+      
+      if (teamId === 1) {
+        state.team1 = newName || TEAM_1_DEFAULT;
+      } else {
+        state.team2 = newName || TEAM_2_DEFAULT;
+      }
+
+      document.getElementById(`team${teamId}-edit`).classList.add('hidden-el');
+      document.getElementById(`team${teamId}-display`).classList.remove('hidden-el');
+      updateUI();
+    }
+
+    // Iniciar UI
+    updateUI();
+  </script>
+</body>
+</html>
