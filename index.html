@@ -222,6 +222,7 @@
     .locked-ui { pointer-events: none; filter: blur(2px) grayscale(50%); opacity: 0.6; transition: all 0.3s; }
 
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="antialiased select-none">
 
@@ -478,6 +479,15 @@
       Stats
     </button>
     <div class="w-px h-4 bg-zinc-800"></div>
+    <button onclick="openDeck()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
+      🃏 Mazo
+    </button>
+    <div class="w-px h-4 bg-zinc-800"></div>
+    <button onclick="showGraph()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
+      📈 Gráfico
+    </button>
+    <div class="w-px h-4 bg-zinc-800"></div>
+
     <button onclick="randomMano()" class="flex items-center gap-1 text-zinc-600 hover:text-zinc-300 transition-colors py-2 px-3 rounded-full hover:bg-zinc-800/40 text-xs font-semibold">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle></svg>
       Mano
@@ -513,6 +523,36 @@
 
   <!-- Toast -->
   <div id="toast" class="hidden-el fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-800 text-zinc-200 text-xs font-semibold px-4 py-3 rounded-full border border-zinc-700/50 shadow-lg z-50"></div>
+
+  
+  <!-- Gráfico Modal -->
+  <div id="graph-modal" class="hidden-el fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+    <div class="modal-enter bg-zinc-900 border border-zinc-800/70 rounded-3xl p-5 w-full max-w-2xl shadow-2xl relative">
+      <button onclick="document.getElementById('graph-modal').classList.add('hidden-el')" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold">×</button>
+      <h3 class="text-center font-bold text-lg mb-4 text-zinc-200 uppercase tracking-widest">Evolución de la Partida</h3>
+      <div class="w-full bg-zinc-800/50 rounded-xl p-2 h-64 sm:h-80">
+        <canvas id="scoreChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mazo Modal -->
+  <div id="deck-modal" class="hidden-el fixed inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center z-[60] p-4">
+    <button onclick="document.getElementById('deck-modal').classList.add('hidden-el')" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-3xl font-bold">×</button>
+    
+    <div class="bg-zinc-900 border border-zinc-800/70 rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col items-center">
+      <h3 class="font-bold text-xl mb-6 text-zinc-200">Mazo de Truco</h3>
+      
+      <div id="cards-container" class="flex gap-3 mb-8 justify-center min-h-[160px]">
+        <!-- Cards go here -->
+      </div>
+      
+      <button onclick="dealCards()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-white font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+        Repartir 3 cartas
+      </button>
+      <p class="text-xs text-zinc-500 mt-4 text-center">Toca las cartas para voltearlas. Ideal si te quedaste sin mazo físico.</p>
+    </div>
+  </div>
 
   <!-- Winner Modal -->
   <div id="winner-modal" class="hidden-el fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -588,6 +628,8 @@
       if(state.manoIdx === undefined) state.manoIdx = 0;
       if(state.florEnabled === undefined) state.florEnabled = false;
       if(state.theme === undefined) state.theme = 'dark';
+      if(!state.scoreHistory) state.scoreHistory = [[...state.scores]];
+
     } catch(e){}
   }
 
@@ -644,6 +686,100 @@
   function toggleSound() { soundEnabled=!soundEnabled; document.getElementById('sound-icon-on').classList.toggle('hidden-el',!soundEnabled); document.getElementById('sound-icon-off').classList.toggle('hidden-el',soundEnabled); }
 
   
+  
+  // --- GRÁFICO ---
+  let chartInstance = null;
+  function showGraph() {
+    document.getElementById('graph-modal').classList.remove('hidden-el');
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    
+    if (chartInstance) chartInstance.destroy();
+    
+    let labels = state.scoreHistory.map((_, i) => 'Acción ' + i);
+    let datasets = [];
+    const colors = ['#3b82f6', '#f59e0b', '#10b981']; // blue, amber, emerald
+    
+    for (let i = 0; i < state.mode; i++) {
+        datasets.push({
+            label: state.teams[i],
+            data: state.scoreHistory.map(h => h[i]),
+            borderColor: colors[i],
+            backgroundColor: colors[i] + '40',
+            tension: 0.3,
+            fill: true,
+            borderWidth: 3,
+            pointRadius: 2
+        });
+    }
+
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: state.limit, ticks: { color: '#a1a1aa' }, grid: { color: '#27272a' } },
+                x: { ticks: { display: false }, grid: { display: false } }
+            },
+            plugins: {
+                legend: { labels: { color: '#e4e4e7', font: { family: 'Inter', weight: 'bold' } } }
+            }
+        }
+    });
+  }
+
+  // --- MAZO VIRTUAL ---
+  const suits = [
+      { name: 'Espada', emoji: '⚔️', color: 'text-blue-600' },
+      { name: 'Basto', emoji: '🪵', color: 'text-green-700' },
+      { name: 'Oro', emoji: '🪙', color: 'text-yellow-600' },
+      { name: 'Copa', emoji: '🍷', color: 'text-red-600' }
+  ];
+  const values = [1, 2, 3, 4, 5, 6, 7, 10, 11, 12];
+  let deck = [];
+  
+  function initDeck() {
+      deck = [];
+      for (let s of suits) {
+          for (let v of values) {
+              deck.push({ v: v, s: s });
+          }
+      }
+      // Shuffle
+      deck.sort(() => Math.random() - 0.5);
+      deck.sort(() => Math.random() - 0.5);
+  }
+
+  function dealCards() {
+      if (deck.length < 3) initDeck();
+      let hand = [deck.pop(), deck.pop(), deck.pop()];
+      
+      const container = document.getElementById('cards-container');
+      container.innerHTML = hand.map((c, i) => `
+          <div class="relative w-20 sm:w-24 h-32 sm:h-36 cursor-pointer transform transition-transform hover:scale-105 active:scale-95" onclick="this.querySelector('.card-front').classList.toggle('hidden'); this.querySelector('.card-back').classList.toggle('hidden'); haptic(10);">
+             <!-- Reverso (Oculta) -->
+             <div class="card-back absolute inset-0 bg-blue-900 rounded-xl shadow-lg border-2 border-white/20 flex flex-col items-center justify-center p-1 bg-[radial-gradient(circle,_transparent_20%,_#1e3a8a_20%,_#1e3a8a_80%,_transparent_80%,_transparent),radial-gradient(circle,_transparent_20%,_#1e3a8a_20%,_#1e3a8a_80%,_transparent_80%,_transparent)_25px_25px] bg-[length:50px_50px]">
+                <div class="w-full h-full border border-blue-400/30 rounded-lg"></div>
+             </div>
+             <!-- Frente (Visible) -->
+             <div class="card-front hidden absolute inset-0 bg-white rounded-xl shadow-xl flex flex-col items-center justify-center border-2 border-zinc-200">
+                <span class="text-2xl sm:text-3xl font-black ${c.s.color}">${c.v}</span>
+                <span class="text-3xl sm:text-4xl mt-2 drop-shadow-md">${c.s.emoji}</span>
+             </div>
+          </div>
+      `).join('');
+      
+      playTick(400, 0.1);
+      haptic(20);
+  }
+
+  function openDeck() {
+      document.getElementById('deck-modal').classList.remove('hidden-el');
+      document.getElementById('cards-container').innerHTML = ''; // Limpiar mesa
+      initDeck();
+  }
+
   // Nuevas Funciones
   let isLocked = false;
   function toggleLock() {
@@ -837,6 +973,7 @@
     if(undoStack.length>50) undoStack.shift();
     
     state.scores[idx]=Math.max(0,state.scores[idx]+amount);
+    state.scoreHistory.push([...state.scores]);
     
     addLog(idx,amount,label||''); if(label) speakAction(label);
     if(state.scores[idx]>=state.limit) {
@@ -866,7 +1003,7 @@
   function undoLast() {
     if(undoStack.length===0) return;
     const prev=undoStack.pop(); 
-    state.scores=prev.scores; state.manos=prev.manos; state.winner=prev.winner;
+    state.scores=prev.scores; if(state.scoreHistory && state.scoreHistory.length > 1) state.scoreHistory.pop(); state.manos=prev.manos; state.winner=prev.winner;
     if(prev.manoIdx !== undefined) state.manoIdx = prev.manoIdx;
     
     if(prev.logLen !== undefined) {
@@ -883,7 +1020,7 @@
   function setFlor(v) { state.florEnabled=v; haptic(10); updateWithTransition(); }
   
   function resetGame() { 
-    state.scores=[0,0,0]; state.winner=null; state.manos=0; state.manoIdx=0; 
+    state.scores=[0,0,0]; state.scoreHistory=[[0,0,0]]; state.winner=null; state.manos=0; state.manoIdx=0; 
     undoStack=[]; actionLog=[]; updateWithTransition(); 
   }
   function confirmReset() { if(state.scores.every(s=>s===0)) return; document.getElementById('confirm-modal').classList.remove('hidden-el'); }
